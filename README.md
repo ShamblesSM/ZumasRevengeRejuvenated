@@ -1,6 +1,10 @@
 # ZumasRevengeRejuvenated
-![Discord](https://img.shields.io/discord/746985799425458198?color=%235865F2&label=Discord&logo=discord&style=for-the-badge) 
-![ModWorkshop](https://img.shields.io/badge/ModWorkshop-Download-%230a6bd4?link=https://modworkshop.net/mod/29533&link=https://modworkshop.net/mod/29533)
+<a href="https://discord.gg/https://discord.gg/jY8jsQK">
+        <img src="https://img.shields.io/discord/746985799425458198?color=%235865F2&label=Discord&logo=discord&style=for-the-badge"
+            alt="chat on Discord"></a>
+<a href="https://modworkshop.net/mod/29533">
+        <img src="https://img.shields.io/static/v1?label=ModWorkshop&message=Download&color=0a6bd4&style=for-the-badge"
+            alt="download on ModWorkshop"></a>
 
 A mod for Zuma's Revenge that aims to bring the Console experience to PC!
 
