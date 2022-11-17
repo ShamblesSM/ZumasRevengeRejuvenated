@@ -31,8 +31,7 @@ With game assets extracted from the PS3 and XBLA versions, Tiki Island feels mor
   This was almost done, though due to some issues, it couldn't be done properly. **The cheat table used for this is not included in the mod; if you would like to help, please download it from the GitHub repository. Keep in mind that it searches for "ZumasRevenge.exe" and not "popcapgame1.exe" - just manually fix that.**
 
 ## Help Wanted!
-- **An Assembly coder:** The person whom I used to work with is unfortunately busy with real life, and cannot further help in the mod's development.
-GitHub repository link if you are interested: https://github.com/CrushyGreenRen/ZumasRevengeRejuvenatedCheatTable
+- **An Assembly coder:** The person whom I used to work with is unfortunately busy with real life, and cannot further help in the mod's development. In addition EXE editing may be needed.
 - **An Artist:** There are only 4 Spirit Animals in the Console version, and there are 7 Challenge trophies in the PC version. Unfortunately, I need an artist who can imitate the Console version artist's artstyle.
 
 ## Version Roadmap
