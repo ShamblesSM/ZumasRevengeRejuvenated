@@ -1,0 +1,1838 @@
+	
+<!--
+			++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+			
+			Berserk mode: This is for bosses only. This lets you alter any of the boss' parameters when his health drops
+			below a certain amount. CURRENTLY, *ALL* VALUES DESCRIBED IN THE ABOVE DDS SECTION CAN BE USED AS BERSERK VALUES.
+			I will list extra values below when they are added. When the boss' health drops below a threshhold you specify,
+			the values are modified by the amount you set. Like the <DDS> tag, <Berserk> tags go between a <Boss> section. 
+			Here's an example tag:
+			
+			<Berserk value="HPDecPerHit" amount="-5" HealthLimit="75"/>
+			
+			The number in /amount/ is ADDED to the present value of the variable. /HealthLimit/ indicates that if the boss
+			previously had a health greater than or equal to this but is now less than this (i.e. you damaged him and he dropped
+			below the number) then this rule should take effect. It only happens the first time the boss crosses that threshhold,
+			so it won't keep constantly apply -5 to HPDecPerHit when he's below 75 health. If you have multiple entries you want
+			affected at the same HealthLimit, just specify them with another <Berserk> tag, using the same HealthLimit value.
+			If you wanted HPDecPerHit to change again if say the boss dropped below 30 health, you would simply add another <Berserk>
+			tag like so:
+			
+			<Berserk value="HPDecPerHit" amount="-5" HealthLimit="30"/>
+			
+			Skip to the end of this file for a testbed boss for more examples on the <Berserk> section.
+						
+			
+			SPECIAL BERSERK MOVEMENT RELATED COMMANDS:
+			------------------------------------------
+			You can have the boss switch to a different movement pattern completely upon berserking. This requires a berserk tag of this form:
+			
+			<Berserk value="movement" HealthLimit="<num>" .../>
+			
+			NOTE THAT YOU HAVE TO SPECIFY "movement" FOR YOUR VALUE TAG!!!! And you don't specify /amount/ or /override/.
+			Set any parameters here relating to position that you normally would set up for the boss' default movement pattern.
+			The following are the ONLY valid tags that can be used here: please note that their usage and combination are subject to
+			the same rules as described elsewhere in this doc.
+			
+			startx, endx, starty, endy, x, y, x1 and y1 through infinity
+			
+			2 examples: This would switch movement to rail based:
+			
+			<Berserk value="movement" HealthLimit="60" startx="123" endx="456" y="123"/> 
+			
+			This would switch to waypoint based:
+			
+			<Berserk value="movement" HealthLimit="95" x1="175" y1="217" x2="647" y2="217"/>
+			
+			This will COMPLETELY wipe out the values for these previous variables (all others aren't touched, like strafe, move speed, etc etc).
+			
+			++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-->
+	
+<!--
+	==================================================================================================================
+	
+	The following is a list of all valid parameters for bosses only:
+	
+	Common to all:
+	--------------
+	
+		HPDec				- How much health the boss loses per shot fire. Must be multiple of 5 (each 5 indicates a 1/4 heart)
+		HPDecProxBomb		- Like above but for how much health damage a proximity bomb does. IF NOT DEFINED AT ALL, DEFAULTS TO /HPDec/!
+			
+		ImpatientTimer		- If specified, when this time runs out the boss becomes impatient and every 10 seconds, the curve moves 10% faster,
+								the boss starts firing faster and more often.
+		NormalPassUnder		- If true, normal bullets don't affect the boss and he can only be hit by cannon balls.
+		BombDelay			- In frames, this will make it so the proximity bomb can spawn multiple times but limited by this delay instead of the present cap
+								of 1 per curve.
+		X/YShake			- Makes the boss shake when hit by the specified amount. Use 0 for none.	
+		CanCompact			- If "true", the boss will compact the curve when he's hit
+		HeartXOff/HeartYOff	- Lets you position the location of the boss heart gauge, relative to the boss' location.
+		TikiStunTime		- how long the tiki stops moving for if hit. If this is 0, the tiki will behave like the others do in regards to getting hit. 
+								Only valid for moving tikis.
+		tiki<num>track		- if true, this tiki follows the player, otherwise it behaves like the others do
+		tiki<num>accel		- If tracking the player, this is how fast it accelerates after overshooting
+		
+		You can put a tiki on a rail, either vert or horiz. Just do /tiki<num>w/ or /tiki<num>h/ to set the
+		rail width or height, respectively. To set the traveltime between the rail points, use /tiki<num>time/.
+		
+		You can setup the location and size of a wall by inserting any of the following tags still on the <BOSS> line, where the #
+		symbol is an integer ID number of the wall:
+		
+			wall#x, wall#y	- location of the wall
+			wall#w, wall#h	- width/height of the wall
+			
+		If you have an even number of tikis to walls, then the tikis will make the wall of the same ID disappear when hit. If you have only 1 wall but
+		more than 1 tiki, you must hit all tikis to make the wall disappear.
+	
+		
+	Specific to boss type 3 (present "Ace" style boss permutations):
+	----------------------------------------------------------------
+		
+					USE ONLY 1 OF THE FOLLOWING MOVEMENT METHODS
+					 
+					MOVEMENT METHOD1
+		StartX/EndX			- The boss moves horizontally between these points. He'll randomly start somewhere in between
+		y					- He doesn't change Y coordinate, so just set 1 value for this
+		
+					MOVEMENT METHOD2
+		x1/y1, x2/y2, etc	- Specify any number of paired coordinates and the boss will instantly warp between them, rather than
+								picking a spot on a rail between endpoints. Hovering parameters and all other parameters are respected.										
+		
+		BombFreqMin/Max		- Lets you force a prox bomb to spawn every this number of balls
+		BombDuration		- Lets you override how long the prox bomb powerup stays on screen for (default is 20 seconds)
+		minhover/maxhover	- Min/max time to hover in place
+		movespeed			- How fast he moves after hovering to the next spot
+		minfire/maxfire		- Min/Max firing delay when he's hovering
+	
+							ONLY USE 1 OF THE FOLLOWING 3 OPTIONS:	
+		stun				- how long the frog is stunned for
+		poison				- how long frog is poisoned and has mouse controls inverted for
+		hallucinate			- how long ball colors are messed up for 
+	
+			SHIELD RELATED
+		UseShield			- If true, the boss gets a shield around him that is made of 4 quadrants that must be destroyed by a prox bomb.
+								If false, none of the rest of the parameters matter.
+		ShieldRotSpeed		- How fast (degrees per update frame) the shield SMOOTHLY rotates
+		ShieldPauseTime		- Use ONLY this or ShieldRotSpeed: if set, the shield will sit still until this time elapse, then it rotates 90 degrees.
+		ShieldRespawnTime	- How quickly the shield segments respawn.
+		ShieldHP			- Use with the next parameter: lets you set how much HP a shield segment has. 
+		BallShieldDamage	- If the above is set, then this is how much HP a normal bullet does to a shield segment. When the segment drops to 0 HP,
+								it disappears for /ShieldRespawnTime/. So if you set this to 1 and /ShieldHP/ to 3, you'd need to make 3 hits
+								to open the shield segment. Hitting a shield segment with a prox bomb always instantly opens it up.
+		EnrageShieldRestore	- If true, the entire shield regens instantly when the boss goes berserk
+			
+		DrawRadius			- If true, will draw a radius that indicates a region in which, if a prox bomb goes off in, will damage the boss.
+		minbullet/maxbullet	- Min/max speed of the projectiles he fires
+		noflip				- Disables the ability to flip back and forth on the rail.
+		subtype				- Set to 1 for how boss1 works: just fires a bullet right at the player. Set to 2 to allow the
+								boss to fire multiple bullets at the player. ONLY IF SUBTYPE IS 2 WILL THE NEXT PARAMETER, 
+								/maxbullets/ APPLY! Otherwise it'll be ignored.
+		shottype			- If you're using subtype 2, aka multishot, this lets you set a specific type of shot to do for the boss' regular attacks.
+								Specify "any" or leave blank to allow any (randomly chosen) shot type. Specify "target" to have the bullet target the player,
+								specify "sine" for one of the sinusoidal variants (works for both the sine types we made), and finally the new one, specify
+								"straight" to make the boss fire a perpendicular shot that isn't targeted.							
+								NEW ADDITION: specify "homing" to make the projectile's X velocity track the player. Used in conjunction with /homingspeed/
+		homingspeed			- A floating point value only used with homing shot type. This is how fast the missile corrects its speed.			
+		shotdelay			- In MS, this is only used if firing multiple shots. This lets you make shots delayed by an amount so as to stagger them.		
+		retalshotdelay		- Like the above but for retaliatory shots.
+		EndHoverOnHit		- If true, when the boss is shot, he'll stop hovering and go to his next spot		
+		flightspeed 		- a floating point value that overrides the speed for when the boss is hit and is fleeing immediate fleeing effect. Only valid with endhoveronhit.
+		minflightdist 		- the minimum pixel distance the dude has to travel if he is fleeing in terror. Only valid with endhoveronhit.
+		EnrageAmt			- Every time the boss loses this amount of health, he increments the maxbullets amount by 1
+		RetalEnrageAmt		- Like above but for his retaliation shot counter				
+		maxbullets			- If subtype is 2, this controls how many bullets the boss will fire when he's ready to
+		retaliation			- For either subtype, when the boss is hit, this is how many shots he'll fire
+		retaltype			- Retaliation shot type: set to "sine" to make the shots be sinusoidal. If you fire more than 1,
+								he'll alternate firing a left/right sine pattern. If anything but "sine" he'll fire right
+								at the player.
+			
+		THE FOLLOWING ARE ONLY USED IF /retaltype/ IS SINE:
+		(Only one of these sections can be valid at a time)
+			
+		min/maxamp			- Sets the min/max amplitude for the sine wave function. The large the value, the taller/higher the
+								sine wave goes to. Think of this as the volume of a sound wave.
+		min/maxfreq			- Sets teh min/max range for the frequency of the wave shape. Think of this as how close together
+								the actual humps/curves of the sine graph are. Higher values put them closer together.
+		Min/MaxSineYInc		- How fast in the Y direction the bullet moves
+			
+		SineShotsTargetPlayer	- Only use this for vertical bosses at the moment.
+		MinSineShotTime		- How long sine shots take to travel from the boss to the player, min in a range
+		MaxSineShotTime		- How long sine shots take to travel from the boss to the player, max in a range
+			
+		CanShootBullets		- Allows the bullets to be destroyed by frog balls. haha		
+			
+		/FrogShield/		How long the frog shield powerup will last for
+		/BossFreeze/		How long the boss freeze powerup will last for
+		
+		
+		COLOR VAMP PARAMETERS:
+		
+		ColorVampire		- If true, he's a color vampire, if not, stop reading the rest of this.
+		AvoidColor			- If true, the player has to AVOID hitting the boss when he's displaying the color. In that case, if you hit him with the color he's showing, he can
+								regain health, if you let him. If false, you HAVE TO hit him with the displayed color. He won't regain health no matter what.
+		VampHealthInc		- If avoidcolor, this is how much health he'll get back. It follows the same rules/restrictions as the /hpdec/ parameter. Ignored if not avoidcolor.
+		VampColorChangeMin/Max - The min/max time for him to change colors, though he'll change after being hit regardless.
+		ColorHelp			- Only valid for color vampire bosses whom you have to hit with the showing color: this is the % chance that when hit,
+									the next color chosen will be the same as the 2nd ball color.
+							
+	
+	==================================================================================================================
+-->
+
+<Config>
+
+	<!-- DDS tiers must be added in order. /powerpct/ is the % increase to all powerups, /slowadd/ is the extra pixel distance to add to the danger/slowdown value.
+		The /speedpct/ value affects the cruising speed of the balls. Set it to 200 (200%) to make the balls go twice as fast...which would be dumb.
+		Set it to 50 (50%) to make them go half as fast at cruising speed.
+		
+		/zumapct/ is the amount to reduce the number of points needed for zuma by. Set it to 0 to leave it the same. Set it to 50 to make the
+		user only need 50% of the points to achieve zuma.
+	 -->
+	
+	<DDS tier="1" powerpct="3" slowadd="0" speedpct="100" zumapct="0" />
+	<DDS tier="2" powerpct="4" slowadd="35" speedpct="97" zumapct="2" />
+	<DDS tier="3" powerpct="6" slowadd="60" speedpct="96" zumapct="4" />
+
+
+	<!-- don't touch this. If you change the boss names for some odd reason though, the /boss/ tag will need to be updated. 
+		So let's just not do that. -->
+	<Zone num="1" start="jungle1" boss="boss1" fruit="pineapple" challengepoints="20000" acechallenge="40000" rating="Easy" cup="Mettle of the Monkey"
+		BossTaunt1="Who are you,&cr;tasty frog?"
+		BossTaunt2="Roar! I'm famished!"
+		BossTaunt3="Trespassers will&cr;be eaten!"
+		BossTaunt4="Dare you approach?"
+		BossTaunt5="Getting closer!"
+		BossTaunt6="I'm readying for you!"
+		BossTaunt7="Frog soup, I love it for sure!"
+		BossTaunt8="No skill can cheat your death!"
+		BossTaunt9="Almost suppertime!"
+		BossTaunt10="At last! Let's eat!"
+	/>
+	
+	<Zone num="2" start="village1" boss="boss2" fruit="banana" challengepoints="30000" acechallenge="60000" rating="Medium" cup="Cheetah Chase"
+		BossTaunt1="They call me&cr;Maga Maga!"
+		BossTaunt2="I'm a Witch Doctor, y'know!"
+		BossTaunt3="I've got loads of magic on me!"
+		BossTaunt4="My slave tikis will deal big pain!"
+		BossTaunt5="My spells will&cr;blind you!"
+		BossTaunt6="My magic is purely strong and evil!"
+		BossTaunt7="'Maga Maga' is short for 'Mashed Enemy'!"
+		BossTaunt8="Do you feel it?&cr;The terror?"
+		BossTaunt9="Are you brave enough?"
+		BossTaunt10="Now is the time for&cr;sorcerous judgment!"
+	
+	/>
+	<Zone num="3" start="city1" boss="boss3" fruit="cocoa" challengepoints="40000" acechallenge="80000" rating="Extra Medium" cup="Rabbit Rumble"
+		BossTaunt1="They call me&cr;Baron Digo!"
+		BossTaunt2="All who smell the Baron know fear!"
+		BossTaunt3="I'll have your&cr;soul, Frog!"
+		BossTaunt4="Baron Digo is&cr;super wicked!"
+		BossTaunt5="I'm immune to balls!"
+		BossTaunt6="Run now while&cr;you can!"
+		BossTaunt7="What? You still come?"
+		BossTaunt8="Has nobody told you my name?"
+		BossTaunt9="To repeat: I am&cr;Baron Digo!"
+		BossTaunt10="Baron Digo is the name of your DOOM!"
+	
+	/>
+	<Zone num="4" start="coast1" boss="boss4" fruit="mango" challengepoints="50000" acechallenge="100000" rating="Hard" cup="Marsh Madness"
+		BossTaunt1="Bzzzzzzz! Bzt!"
+		BossTaunt2="Say, how do you like pestilence?"
+		BossTaunt3="What's your take&cr;on bugs?"
+		BossTaunt4="How do you like wasps?"
+		BossTaunt5="Bee stings:&cr;great or fantastic?"
+		BossTaunt6="I'm an insect god,&cr;by the by!"
+		BossTaunt7="Insects follow&cr;my advice!"
+		BossTaunt8="So glad you're coming my way!"
+		BossTaunt9="You are tough but not enough, Frog!"
+		BossTaunt10="At last my tiny friends will FEEEEED!"
+	
+	/>
+	<Zone num="5" start="grotto1" boss="boss5" fruit="coconut" challengepoints="60000" acechallenge="120000" rating="Very Hard" cup="Undersea Undertaking"
+		BossTaunt1="ARRRG! I'm so angry!"
+		BossTaunt2="Now I'm even&cr;angrier!"
+		BossTaunt3="I'm calm now, but only for a second."
+		BossTaunt4="Pow! Even angrier than I was!"
+		BossTaunt5="Can you face my rage?"
+		BossTaunt6="Your approach&cr;insults me, Frog!"
+		BossTaunt7="I'm not afraid of you!"
+		BossTaunt8="I feel the anger welling up again!"
+		BossTaunt9="I can't take much more waiting!"
+		BossTaunt10="Let's begin our&cr;furious battle!"
+	
+	/>
+	<Zone num="6" start="volcano1" boss="boss6" fruit="acorn" challengepoints="70000" acechallenge="140000" rating="Seriously Hard" cup="Hawk Hellscape"
+		BossTaunt1="Five champions have you defeated."
+		BossTaunt2="Five chiefs you have humbled."
+		BossTaunt3="Yet still you are&cr;not satisfied."
+		BossTaunt4="Still you seek&cr;our summit."
+		BossTaunt5="This island is&cr;only doom."
+		BossTaunt6="Your road is only pain."
+		BossTaunt7="I wear the&cr;mysterious mask."
+		BossTaunt8="I wear the&cr;mysterious robe."
+		BossTaunt9="We will never give up our mysteries."
+		BossTaunt10="Now we see how a frog DIES!"
+	
+	/>
+	<Zone num="7" start="ironfrog1" boss="" fruit="acorn" challengepoints="80000" acechallenge="160000" rating="INSANE" cup="The Iron-Plated Secret"/>
+
+	
+	<!-- These tips are displayed at the bottom of the score screen in Adventure mode. 
+		FOR NORMAL MODE ONLY: THE FIRST 7 HINTS ARE SPECIAL: THEY WILL **IN ORDER** APPEAR BUT ONLY AFTER BEATING LEVELS 1-7 IN ZONE 1.
+		THEY ARE THE HINTS FOR THE POWERUPS. AFTER LEVEL 7, THEY WILL **NEVER** APPEAR AND ONLY THE SUBSEQUENT ONES WILL BE RANDOMLY CHOSEN FROM. -->
+	
+	<ScoreTip text="The Reverse powerup&cr;rolls the balls in the&cr;opposite direction."/>
+	<ScoreTip text="The Slowdown powerup&cr;reduces the speed of&cr;balls on the curve."/>
+	<ScoreTip text="The Accuracy powerup&cr;makes your shots faster&cr;and easier to target."/>
+	<ScoreTip text="The Tri-shot fires three&cr;destructive balls of doom!"/>
+	<ScoreTip text="The Lightning powerup&cr;destroys all balls of&cr;your target's color."/>
+	<ScoreTip text="The Laser zaps balls&cr;and fruit with&cr;pinpoint accuracy."/>
+	
+	<ScoreTip text="Use the right mouse button to&cr;cancel the Laser powerup." minlevel="8"/>
+	<ScoreTip text="When changing lily pads try&cr;using the right mouse button." minlevel="21"/>
+	<ScoreTip text="Use the right mouse button to&cr;swap between ball colors." minlevel="8"/>
+	<ScoreTip text="You can jump to an empty lily pad&cr;by clicking on it." minlevel="13"/>
+	<ScoreTip text="Use the Laser powerup to trigger&cr;other powerups!" minlevel="8"/>
+	<ScoreTip text="Shoot fruit for extra points&cr;and a Zuma bar boost." minlevel="8"/>
+	<ScoreTip text="Shooting through gaps increases&cr;the points you get for a match!" minlevel="8"/>
+	<ScoreTip text="Beating a level without dying&cr;will earn a Perfect Level Bonus." minlevel="8"/>
+	<ScoreTip text="Beating Ace Time on a level will&cr;give you a bonus." minlevel="8"/>
+	<ScoreTip text="The Laser powerup slows time so&cr;you can make precise shots." minlevel="8"/>
+	<ScoreTip text="The Laser powerup can be used to&cr;collect fruit!" minlevel="8"/>
+	<ScoreTip text="Fill the Zuma bar to stop new&cr;balls from coming." minlevel="8"/>
+	<ScoreTip text="The Accuracy powerup makes your&cr;shots faster for a short period." minlevel="8"/>
+	<ScoreTip text="You receive a Chain Bonus for&cr;each consecutive match after&cr;five in a row." minlevel="8"/>
+	<ScoreTip text="Get multiple matches in a single&cr;shot for a Combo Bonus." minlevel="8"/>
+	<ScoreTip text="Beat Adventure mode to unlock&cr;other modes!" minlevel="8"/>
+	<ScoreTip text="Once you've beaten a zone,&cr;try it again in Challenge mode!" minlevel="8"/>
+
+	<!-- PLEASE DON'T REMOVE THESE: You may update them and modify them to balance and stuff but leave at least
+		something defined for gauntlet mode so I can continue to test it w/out crashing -->
+
+	<!-- if you use "points" instead of "time" then when the users crosses that point threshhold the difficulty increases, otherwise it goes up over time -->
+	<Gauntlet NumCurves="1" HurryDist="25" HurrySpeed=".9" >
+		<Difficulty time="0" colors="4" speed="0.6" startdist="50" zumascore="500" ballrepeat="40" powerup="600" rollback="50" dangerratio="4.0" maxclumps="5" maxsingles="4" rollbackduration="0"/>
+		<Difficulty time="2500" colors="4" speed="0.7" startdist="50" zumascore="700" ballrepeat="35" powerup="580" rollback="50" dangerratio="3.5" maxclumps="3" maxsingles="4" rollbackduration="0"/>
+		<Difficulty time="5000" colors="5" speed="0.75" startdist="50" zumascore="750" ballrepeat="39" powerup="600" rollback="50" dangerratio="3.5" maxclumps="4" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="7500" colors="5" speed="0.8" startdist="50" zumascore="1000" ballrepeat="37" powerup="580" rollback="50" dangerratio="3.0" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="10000" colors="5" speed="0.85" startdist="50" zumascore="1000" ballrepeat="36" powerup="570" rollback="50" dangerratio="2.75" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="12000" colors="6" speed="0.77" startdist="50" zumascore="1050" ballrepeat="38" powerup="600" rollback="50" dangerratio="2.9" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="14000" colors="6" speed="0.80" startdist="50" zumascore="1250" ballrepeat="38" powerup="580" rollback="50" dangerratio="2.7" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="16000" colors="6" speed=".82" startdist="50" zumascore="1350" ballrepeat="37" powerup="570" rollback="50" dangerratio="2.6" maxclumps="3" maxsingles="6" rollbackduration="0"/>
+		<Difficulty time="18000" colors="6" speed=".85" startdist="50" zumascore="1550" ballrepeat="37" powerup="560" rollback="50" dangerratio="2.5" maxclumps="2" maxsingles="6" rollbackduration="0"/>
+		<Difficulty time="20000" colors="6" speed=".88" startdist="50" zumascore="1550" ballrepeat="37" powerup="550" rollback="50" dangerratio="2.4" maxclumps="2" maxsingles="6" rollbackduration="0"/>
+		<Difficulty time="22000" colors="6" speed=".92" startdist="50" zumascore="1550" ballrepeat="36" powerup="550" rollback="50" dangerratio="2.4" maxclumps="2" maxsingles="6" rollbackduration="0"/>
+		<Difficulty time="24000" colors="6" speed=".96" startdist="50" zumascore="1550" ballrepeat="36" powerup="560" rollback="50" dangerratio="2.3" maxclumps="2" maxsingles="6" rollbackduration="0"/>
+		<Difficulty time="26000" colors="6" speed=".99" startdist="50" zumascore="1550" ballrepeat="35" powerup="570" rollback="50" dangerratio="2.3" maxclumps="2" maxsingles="7" rollbackduration="0"/>
+		<Difficulty time="28000" colors="6" speed="1.03" startdist="50" zumascore="1550" ballrepeat="35" powerup="580" rollback="50" dangerratio="2.1" maxclumps="2" maxsingles="7" rollbackduration="0"/>
+		<Difficulty time="30000" colors="6" speed="1.07" startdist="50" zumascore="1550" ballrepeat="34" powerup="590" rollback="50" dangerratio="1.9" maxclumps="2" maxsingles="7" rollbackduration="0"/>
+		<Difficulty time="32000" colors="6" speed="1.1" startdist="50" zumascore="1550" ballrepeat="34" powerup="600" rollback="50" dangerratio="1.8" maxclumps="2" maxsingles="7" rollbackduration="0"/>
+	</Gauntlet>
+
+	<Gauntlet NumCurves="2" HurryDist="25" HurrySpeed="1.0" >
+		<Difficulty time="0" colors="4" speed="0.4" startdist="50" zumascore="500" ballrepeat="40" powerup="550" rollback="50" dangerratio="3.5" maxclumps="5" maxsingles="4" rollbackduration="0"/>
+		<Difficulty time="2500" colors="4" speed="0.425" startdist="50" zumascore="700" ballrepeat="35" powerup="500" rollback="50" dangerratio="3.0" maxclumps="3" maxsingles="4" rollbackduration="0"/>
+		<Difficulty time="5000" colors="5" speed="0.45" startdist="50" zumascore="750" ballrepeat="40" powerup="550" rollback="50" dangerratio="3.0" maxclumps="4" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="7500" colors="5" speed="0.475" startdist="50" zumascore="1000" ballrepeat="35" powerup="500" rollback="50" dangerratio="2.5" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="10000" colors="6" speed="0.5" startdist="50" zumascore="1050" ballrepeat="40" powerup="600" rollback="50" dangerratio="2.5" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="12000" colors="6" speed="0.525" startdist="50" zumascore="1250" ballrepeat="38.5" powerup="580" rollback="50" dangerratio="2.4" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="14000" colors="6" speed="0.55" startdist="50" zumascore="1350" ballrepeat="38" powerup="550" rollback="50" dangerratio="2.3" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="16000" colors="6" speed="0.575" startdist="50" zumascore="1550" ballrepeat="37" powerup="525" rollback="50" dangerratio="2.1" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="18000" colors="6" speed="0.625" startdist="50" zumascore="1550" ballrepeat="36" powerup="500" rollback="50" dangerratio="2.1" maxclumps="3" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="20000" colors="6" speed="0.625" startdist="50" zumascore="1550" ballrepeat="35" powerup="480" rollback="50" dangerratio="1.9" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="22000" colors="6" speed="0.65" startdist="50" zumascore="1550" ballrepeat="34" powerup="460" rollback="50" dangerratio="1.9" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="24000" colors="6" speed="0.65" startdist="50" zumascore="1550" ballrepeat="34" powerup="450" rollback="50" dangerratio="1.85" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="26000" colors="6" speed="0.675" startdist="50" zumascore="1550" ballrepeat="34" powerup="460" rollback="50" dangerratio="1.8" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="28000" colors="6" speed="0.675" startdist="50" zumascore="1550" ballrepeat="34" powerup="470" rollback="50" dangerratio="1.75" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="30000" colors="6" speed="0.7" startdist="50" zumascore="1550" ballrepeat="34" powerup="480" rollback="50" dangerratio="1.7" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+		<Difficulty time="32000" colors="6" speed="0.725" startdist="50" zumascore="1550" ballrepeat="34" powerup="490" rollback="50" dangerratio="1.65" maxclumps="2" maxsingles="5" rollbackduration="0"/>
+	</Gauntlet>
+	
+	
+<!--
+		ColorNukeAfterZuma		- If false, then color nukes won't spawn after getting zuma
+		ColorNukeTimeAfterZuma	- If a color nuke exists after getting zuma, this is how much time it has before it disappears.
+									This works independantly of ColorNukeAfterZuma. Set to < 0 to disable this feature.
+		UniquePowerupColor		- If true, requires that on a PER CURVE basis, that a powerup choose a color that doesn't already have
+									a powerup. If false, a color can have more than 1 powerup type.
+		PowerupCapAffectsTriggered	- If false, then the cap per powerup is based on the number TRIGGERED/ACTIVATED. If true, this is the 
+										original way where the cap is based on the number spawned, regardless of if the player activated it or not.
+		PowerDelay				- When a level first starts, this is how long you have to wait before you can get a powerup
+		PowerSpawnDelay			- After a powerup spawns, this is the amount of time that has to pass before ANY powerup is allowed to spawn.
+									Set to 0 to disable this.
+		BossTauntChance			- Chance that, assuming other conditions are met, that the boss will display a hint/taunt in the middle of battle. Every frame,
+									there is a 1 in this chance to occur.
+									
+		MinMultSpawnDist		- Minimum % distance up the start of the curve a ball has to be to be considered for being a multiplier ball in challenge mode.
+	-->
+	
+<Defaults cannonangle="15" cannon="1" cannonstack="false" lazer="4" lazerstack="false" BossTauntChance="5000" 
+				powerdelay="1500" powercooldown="1000" ColorNukeAfterZuma="true" ColorNukeTimeAfterZuma="100" MaxZumaPctForColorNuke="0"
+				ClearCurvePoints="2000" ClearCurveRolloutPct="10" ClearCurveSpeedMult="4.0"
+				UniquePowerupColor="true" PowerupCapAffectsTriggered="true" 
+				MultBallLife="1000" MultBallPoints="1000" MultiplierDuration="1200" NumForMultBase="15" NumForMultInc="3" MaxNumForMult="35" GauntletSessionLength="18000" MinMultSpawnDist="3" 
+				PointsForBronze="5000" PointsForSilver="10000" PointsForGold="15000" PointTimeAdd="650" NumPointsForTimeAdd="5000" 
+				PowerIncAtZumaPct="85" PowerInc="7" PZT="0" PZTSpeedInc="0" PZTSlowInc="0" PowerSpawnDelay="700" MultTimeAdd="0" ChallengeTFreq="500" 
+				PointsForExtraLife="50000" BossesCanAttackAffectedFrog="false" BossAttackDelayAfterHitFrog="700"
+				BeatGamePointsForLife="2000"
+				/>
+	
+<!-- Jungle -->
+
+	<Level id="Jungle1" challengepoints="40000" acechallenge="60000" dispname="Shipwrecked!" drawcurve="false" curve1="Jungle1\Jungle1" psd="true" tfreq="1000" partime="3000" OffscreenClearBonus="false" effect1="WaterEffect1" effect2="ShadowCanopy1" effect3="Foliage1" gauntlet="1">
+		 
+		<Gun type="normal" gx1="420" gy1="290" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="2"/>
+		<Tunnel layer="8" pri="0" x="0" y="0"/>
+		<Tunnel layer="7" pri="1" nothumb="true"/>
+		<Tunnel layer="6" pri="0" />
+		
+		<!-- These are ignored in normal adventure mode. -->
+		
+		<TreasurePoint x="680" y="222" dist1="63" />
+		<TreasurePoint x="34" y="68" dist1="24" />
+		<TreasurePoint x="37" y="503" dist1="34" />
+		
+	</Level>
+
+	<Level id="Jungle2" dispname="Castaway" effect1="ShadowCanopy1" challengepoints="45000" acechallenge="70000" drawcurve="false" drawtunnel="false" curve1="Jungle2\Jungle2" psd="true" tfreq="1000" partime="3500" gauntlet="1">
+		<Gun type="normal" gx1="380" gy1="300" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="2"/>		
+		<TreasurePoint x="28" y="105" dist1="60" />
+		<TreasurePoint x="716" y="505" dist1="33" />
+		<TreasurePoint x="602" y="366" dist1="84" />
+	</Level>
+
+	<Level id="Jungle3" dispname="Echo Beach" effect1="ShadowCanopy1" challengepoints="45000" acechallenge="75000" drawcurve="false" curve1="Jungle3\Jungle3" psd="true" tfreq="1000" partime="4000" gauntlet="1">
+		<Gun type="normal" gx1="398" gy1="290"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="2"/>
+		<TreasurePoint x="14" y="528" dist1="15" />
+		<TreasurePoint x="369" y="449" dist1="73" />
+		<TreasurePoint x="730" y="240" dist1="40" />
+	</Level>
+
+
+
+	<Level id="Jungle4" dispname="Bones of an Idol" effect1="ShadowCanopy2" challengepoints="55000" acechallenge="80000" drawcurve="false" drawtunnel="false" curve1="Jungle4\Jungle4" psd="true" tfreq="1000" partime="3000" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="2"/>
+		<Tunnel layer="7" pri="2"/>
+		<TreasurePoint x="23" y="493" dist1="55" />
+		<TreasurePoint x="699" y="485" dist1="35" />
+		<TreasurePoint x="200" y="92" dist1="11" />		
+	</Level>
+	
+
+	<Level id="Jungle5" dispname="Switchback Slider" challengepoints="40000" acechallenge="60000" drawcurve="false" drawtunnel="false" curve1="Jungle5\Jungle5" psd="true" tfreq="1000" partime="4000" gauntlet="1">
+		<Gun type="horiz" startx="50" starty="540" width="700"  />		
+		<Tunnel layer="4" pri="0"/>
+		<Tunnel layer="7" pri="0"/>
+		<Tunnel layer="6" pri="2"/>
+		<Tunnel layer="2" pri="0"/>
+		<Tunnel layer="1" pri="0"/>
+		<Tunnel layer="9" pri="0"/>
+		<Tunnel layer="8" pri="0"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>		
+		<Tunnel layer="5" pri="2"/>	
+		<TreasurePoint x="131" y="100" dist1="26" />
+		<TreasurePoint x="610" y="164" dist1="48" />
+		<TreasurePoint x="130" y="259" dist1="67" />
+	</Level>
+
+	<Level id="jungle6" dispname="Jungle Clearing" effect1="ShadowCanopy2" effect2="WillOWisp" challengepoints="50000" acechallenge="75000" drawcurve="false" drawtunnel="false" curve1="Jungle6\Jungle6" psd="true" tfreq="1000" partime="4200" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="3"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="2"/>
+		<TreasurePoint x="180" y="419" dist1="68" />
+		<TreasurePoint x="699" y="68" dist1="42" />
+		<TreasurePoint x="710" y="516" dist1="28" />
+	</Level>
+
+
+
+	<Level id="Jungle7" dispname="Sand Trap" effect1="ShadowCanopy1" drawcurve="false" challengepoints="45000" acechallenge="70000" drawtunnel="false" curve1="Jungle7\Jungle7" psd="true" tfreq="1000" partime="4000" gauntlet="1">
+		<Gun type="normal" gx1="300" gy1="295" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<TreasurePoint x="79" y="126" dist1="83" />
+		<TreasurePoint x="663" y="271" dist1="64" />
+		<TreasurePoint x="681" y="502" dist1="26" />
+	</Level>
+
+	<Level id="Jungle8" dispname="Nasal Passage" effect1="ShadowCanopy1" drawcurve="false" challengepoints="50000" acechallenge="75000" drawtunnel="false" curve1="Jungle8\Jungle8" psd="true" tfreq="1000" partime="3500" gauntlet="1">
+		<Gun type="normal" gx1="390" gy1="320" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="2"/>
+		<Tunnel layer="6" pri="1"/>
+		<TreasurePoint x="390" y="90" dist1="19" />
+		<TreasurePoint x="16" y="285" dist1="33" />
+		<TreasurePoint x="702" y="303" dist1="60" />
+	</Level>
+
+	<Level id="Jungle9" dispname="Creeper Copse" effect1="ShadowCanopy2" effect2="WillOWisp" challengepoints="50000" acechallenge="75000" drawcurve="false" drawtunnel="false" curve1="Jungle9\Jungle9-1" curve2="Jungle9\Jungle9-2" psd="true" tfreq="1000" partime="6500" gauntlet="1" curve1skullangle="130" curve2skullangle="300">
+		<Gun type="normal" gx1="403" gy1="296" />
+		<Tunnel layer="1" pri="3"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="2"/>
+		<TreasurePoint x="649" y="111" dist1="46" />
+		<TreasurePoint x="75" y="468" dist2="45" />
+	</Level>
+	
+<!-- NEW LEVEL PARAMETER:
+			NextLevelText		- In addition to displaying this round's stats, this text will be displayed so that the user
+									can know what to expect on the next level. 
+	-->
+
+	<Level id="Jungle10" dispname="Darkness Falls" effect1="WillOWisp" drawcurve="false" challengepoints="60000" acechallenge="80000" drawtunnel="false" curve1="Jungle10\Jungle10" psd="true" tfreq="1000" partime="4500"
+		NextLevelText="Oh no! Jungle Boss is on a rampage! Blast him through holes in the curve when his shield is down. But don't let the curve reach the skull!" gauntlet="1" curve1skullangle="297">
+		
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="2"/>
+		<TreasurePoint x="68" y="441" dist1="15" />
+		<TreasurePoint x="709" y="499" dist1="29" />
+		<TreasurePoint x="697" y="67" dist1="37" />
+	</Level>
+
+<!--
+													BOSS 1
+-->	
+
+	<Level id="boss1" dispname="Kahtiki Khan" hurryamt="0.75" noflip="false" drawcurve="false" drawtunnel="false" curve1="boss1\boss1" psd="true" tfreq="1000" partime="10000">
+		<Gun type="horiz" startx="70" starty="497" width="660" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+				
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="60" hpdec="15" startx="115" endx="611" y="108" minhover="300" maxhover="300" movespeed="2.0" xshake="5" yshake="5"
+						shottype="target" minfire="170" maxfire="280" stun="200" minbullet="2.3" maxbullet="3.0" CanCompact="false"  endhoveronhit="true" flightspeed="5.0" minflightdist="300" frogstun="200"
+						art="tiger" sepia="tiger/tiger_sepia" HeartXOff="-50" HeartYOff="75" >						
+						
+<!-- 	
+						0 = intro only
+								1 = hasn't hit boss yet
+						-->
+						
+						<!-- We're doing a tutorial intro thinger for this dude so let's not have him do any intro text
+						<Hint text="My infinite onslaught of balls will protect me!"	condition="0" deaths="0" delay="400"/>
+						<Hint text="I dare you to break through them!"					condition="0" deaths="0" delay="400"/>
+						-->
+						
+						<Hint text="I hunger for plenty!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="You will make a fine meal!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I bet you're good and crunchy!"						condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="What goes well with toasted frog?" 					condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I'll bake you in a frog pot pie!     " 					condition="2" deaths="-1" delay="400" mintime="0"  />
+						
+
+						<!-- <Berserk value="maxbullets" amount="1" HealthLimit="30"/>
+						<Berserk value="maxbullet" amount=".5" HealthLimit="30"/>
+						<Berserk value="minbullet" amount=".9" HealthLimit="30"/>
+						<Berserk value="movespeed" amount="2.0" HealthLimit="30"/>
+						<Berserk value="minhover" amount="-100" HealthLimit="30" min="1"/>
+						<Berserk value="maxhover" amount="-100" HealthLimit="30" min="1"/> -->
+						
+						<DeathText line="You broke my mouth!" />
+						<DeathText line="My tongue's hanging out all like glahhhh." />
+						<DeathText line="My four brothers will avenge my tongue! "/>
+						
+						
+</Boss>
+						
+						
+	</Level>		
+	
+<!-- Village -->
+
+	<Level id="village1" dispname="Watering Hole" drawcurve="false" drawtunnel="false" curve1="Village1" challengepoints="50000" acechallenge="80000" psd="true" tfreq="1000" partime="4000" gauntlet="1" curve1skullangle="190">
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="2" />
+		<Tunnel layer="2" pri="2" />
+		<Tunnel layer="3" pri="2" />
+		<TreasurePoint x="47" y="61" dist1="21" />
+		<TreasurePoint x="609" y="169" dist1="86" />
+		<TreasurePoint x="696" y="289" dist1="53" />
+	</Level>
+
+	<Level id="village2" dispname="Overgrown Plaza" drawcurve="false" drawtunnel="false" challengepoints="60000" acechallenge="80000" curve1="Village2" psd="true" tfreq="1000" partime="6000" gauntlet="1">
+		<Gun type="normal" gx1="370" gy1="310" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="3" />
+		<Tunnel layer="4" pri="2" />
+		<Tunnel layer="5" pri="1" />
+		<Tunnel layer="6" pri="1" />
+		<Tunnel layer="7" pri="1" />		
+		<TreasurePoint x="349" y="84" dist1="11" />
+		<TreasurePoint x="663" y="275" dist1="76" />
+		<TreasurePoint x="341" y="493" dist1="40" />
+	</Level>
+
+	<Level id="village3" dispname="Lilypad Leap" drawcurve="false" drawtunnel="false" curve1="Village3\Village3v3" challengepoints="60000" acechallenge="85000" psd="true" tfreq="1000" partime="5000" gauntlet="1">
+		<Gun type="normal" gx1="175" gy1="310" gx2="610" gy2="310" resid="VILLAGE3CHUTE9"/>
+		<Tunnel layer="1" pri="3" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="1" />
+		<Tunnel layer="6" pri="2" />
+		<Tunnel layer="7" pri="2" />
+		<Tunnel layer="8" pri="2" />
+		<TreasurePoint x="28" y="44" dist1="25" />
+		<TreasurePoint x="18" y="531" dist1="37" />
+		<TreasurePoint x="736" y="531" dist1="83" />
+		<Wall x="352" y="0" w="20" h="542" color="01000000" />
+		
+	</Level>
+
+	<Level id="village4" dispname="Sandspirals" drawcurve="false" drawtunnel="false" curve1="Village4v2" challengepoints="65000" acechallenge="90000" psd="true" tfreq="1000" partime="6000" gauntlet="1">
+		<Gun type="normal" gx1="370" gy1="305" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="2" />
+		<Tunnel layer="3" pri="2" />
+		<Tunnel layer="4" pri="2" />
+		<TreasurePoint x="80" y="107" dist1="22" />
+		<TreasurePoint x="65" y="473" dist1="15" />
+		<TreasurePoint x="674" y="490" dist1="10" />
+		
+	</Level>
+
+	<Level id="village5" dispname="Abandoned Well" drawcurve="false" drawtunnel="false" curve1="Village5" challengepoints="70000" acechallenge="90000" psd="true" tfreq="1000" partime="9000" gauntlet="1">
+		<Gun type="normal" gx1="440" gy1="290" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="0" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="1" />
+		<TreasurePoint x="72" y="44" dist1="16" />
+		<TreasurePoint x="724" y="65" dist1="30" />
+		<TreasurePoint x="71" y="454" dist1="57" />
+	</Level>
+
+	<Level id="village6" dispname="Face Your Fear" drawcurve="false" drawtunnel="false" curve1="Village6-1" curve2="Village6-2" curvedata="1" challengepoints="55000" acechallenge="80000" psd="true" tfreq="1000" partime="7500" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="270" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="1" />
+		<TreasurePoint x="250" y="491" dist1="50" />
+		<TreasurePoint x="703" y="500" dist2="35" />
+		<TreasurePoint x="475" y="491" dist2="50" />
+	</Level>
+
+	<Level id="village7" dispname="Seven Sides (minus one)" drawcurve="false" drawtunnel="false" curve1="Village7" challengepoints="60000" acechallenge="85000" psd="true" tfreq="1000" partime="6000" gauntlet="1">
+		<Gun type="normal" gx1="410" gy1="315" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="3" />
+		<Tunnel layer="5" pri="1" />
+		<Tunnel layer="6" pri="1" />
+		<Tunnel layer="7" pri="1" />
+		<PowerupRegion start="0" end="35" chance="3" curve="1"/>
+		<TreasurePoint x="47" y="99" dist1="32" />
+		<TreasurePoint x="84" y="468" dist1="24" />
+		<TreasurePoint x="688" y="493" dist1="12" />
+	</Level>
+
+	<Level id="village8" dispname="Vines of Vengeance" drawcurve="false" drawtunnel="false" curve1="Village8" challengepoints="50000" acechallenge="75000" psd="true" tfreq="1000" partime="7500" gauntlet="1">
+		<Gun type="normal" gx1="410" gy1="310"/>
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="3" />
+		<Tunnel layer="3" pri="1" />
+		<TreasurePoint x="667" y="280" dist1="76" />
+		<TreasurePoint x="386" y="470" dist1="68" />
+		<TreasurePoint x="73" y="257" dist1="58" />
+	</Level>
+
+	<Level id="village9" dispname="Logroller" drawcurve="false" drawtunnel="false" curve1="Village9" psd="true" challengepoints="50000" acechallenge="75000" tfreq="1000" partime="8000" gauntlet="1">
+		<Gun type="horiz" startx="50" starty="520" width="700"  />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="1" />
+		<TreasurePoint x="334" y="161" dist1="40" />
+		<TreasurePoint x="166" y="253" dist1="44" />
+		<TreasurePoint x="657" y="240" dist1="30" />
+	</Level>
+
+	<Level id="village10" dispname="The Horseshoe" drawcurve="false" drawtunnel="false" challengepoints="55000" acechallenge="75000" curve1="Village10\Village10v2" psd="true" tfreq="1000" partime="9500"
+		NextLevelText="You've awakened Village Boss from his slumber! Use the lilypads to take shots at his heads when they glow. Be sure to keep the balls out of the skull!" gauntlet="1">
+		
+		<Gun type="normal" gx1="400" gy1="200" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="1" />
+		<Tunnel layer="5" pri="1" />
+		<Tunnel layer="6" pri="1" />
+		<PowerupRegion start="75" end="99" chance="2" curve="1"/>
+		<TreasurePoint x="69" y="193" dist1="75" />
+		<TreasurePoint x="89" y="461" dist1="67" />
+		<TreasurePoint x="668" y="467" dist1="55" />
+	</Level>
+	
+
+		
+<!--
+													BOSS 2
+-->	
+	
+	
+	<Level id="boss2" dispname="Maga Maga" noflip="false" hurryamt=".57" drawcurve="false" drawtunnel="false" curve1="boss2\boss2" psd="true" tfreq="1000" partime="10000" >
+		<Gun type="horiz" startx="70" starty="527" width="660" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="15" retaliation="1" retalshotdelay="10" retalspeedmin="4.0" retalspeedmax="4.0"
+						art="doctor" sepia="doctor/doctorsepia" hpdec="10" startx="115" endx="611" y="68" minfire="350" maxfire="400" poison="500" minbullet="3.2" maxbullet="3.2" 
+						strafe="false"  CanCompact="false" shottype="target" minhover="400" maxhover="450" EndHoverOnHit="true"
+						movespeed="2.3" xshake="5" yshake="5" HeartXOff="100" HeartYOff="0" wordbubble="Foolish Amphibian!&cr;Just try to breach&cr;my tiki defenses!"
+						wall1x="117" wall1y="165" wall1w="525" wall1h="4" TikiHealthRespawn="20"
+						wall2x="117" wall2y="175" wall2w="525" wall2h="4"
+						tiki1x="67" tiki1y="225" tiki1w="270" tiki1time="285"
+						tiki2x="448" tiki2y="225" tiki2w="270" tiki2time="300" >						
+						
+						<Hint text="Nothing can harm me!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I cannot be beaten! I'm unbeatable!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="See how strong my magics are?"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I went to the best voodoo school!" 							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Step it up, slave tikis! What do I pay you for?" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+						
+						
+
+						
+						<Berserk value="maxbullets" amount="1" HealthLimit="60"/>
+						<Berserk value="maxbullets" amount="1" HealthLimit="30"/>
+						<Berserk value="EndHoverOnHit" amount="false" override="true" HealthLimit="30"/>
+						<Berserk value="retalspeedmin" amount=".5" HealthLimit="60"/>
+						<Berserk value="retalspeedmax" amount=".5" HealthLimit="60"/>
+						<Berserk value="retalspeedmin" amount="1.0" HealthLimit="30"/>
+						<Berserk value="retalspeedmax" amount="1.0" HealthLimit="30"/>
+						<Berserk value="minhover" amount="-100" HealthLimit="60" min="1"/>
+						<Berserk value="maxhover" amount="-50" HealthLimit="60" min="1"/>
+						<Berserk value="minfire" amount="-100" HealthLimit="60"  min="50"/>
+						<Berserk value="maxfire" amount="-50" HealthLimit="60"  min="50"/>
+						<Berserk value="movespeed" amount=".5" HealthLimit="60"/> 
+						<Berserk value="strafe" amount="true" override="true" HealthLimit="30"/>
+						
+						<DeathText line="Ooga! With a helping of booga sauce!"/>
+						<DeathText line="My slave tikis completely flopped on the job."/>
+						<DeathText line="Where did all my magic go?"/>
+						</Boss>
+						
+	
+						
+	</Level>
+	
+<!-- ---------------------------------------- CITY LEVELS GO HERE ---------------------------------------------------------------------------- -->
+	
+	<Level id="city1" dispname="Ancient Cistern" drawcurve="false" drawtunnel="false" curve1="city1" challengepoints="50000" acechallenge="80000" psd="true" tfreq="1000" partime="7500" gauntlet="1">
+		<Gun type="normal" gx1="375" gy1="300" />
+		<Tunnel layer="1" pri="1"/>
+		<PowerupRegion start="25" end="60" chance="2" curve="1"/>
+		<TreasurePoint x="212" y="484" dist1="40" />
+		<TreasurePoint x="430" y="484" dist1="35" />
+		<TreasurePoint x="685" y="270" dist1="67" />
+	</Level>
+	
+	<Level id="city2" dispname="Blossom Grove" drawcurve="false" drawtunnel="false" curve1="city2\city2" challengepoints="55000" acechallenge="90000" psd="true" tfreq="1000" partime="7500" gauntlet="1">
+		<Gun type="normal" gx1="420" gy1="300" />
+		<Tunnel layer="1" pri="2" />
+		<Tunnel layer="2" pri="1" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="1" />
+		<Tunnel layer="5" pri="1" />
+		<TreasurePoint x="29" y="60" dist1="16" />
+		<TreasurePoint x="36" y="496" dist1="24" />
+		</Level>
+
+	<Level id="city3" dispname="Empty Cistern" drawcurve="false" drawtunnel="false" challengepoints="50000" acechallenge="75000" curve1="city3\city3-4" psd="true" tfreq="1000" partime="9500" gauntlet="1">
+		<Gun type="normal" gx1="210" gy1="300" gx2="590" gy2="300" resid="CITY3CHUTE7" />
+		<Wall x="378" y="0" color="00000000" width="30" height="210" strength="-1"/>
+		<Wall x="378" y="338" color="00000000" width="30" height="262" strength="-1"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="3"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="2"/>
+		<Tunnel layer="6" pri="1"/>
+	</Level>
+
+	<Level id="city4" dispname="Ancestral Tongue" drawcurve="false" curve1="city4\city4-1v2" curve2="city4\city4-2v2" challengepoints="55000" acechallenge="80000"  psd="true" tfreq="1000" partime="9500" gauntlet="1" curve1skullangle="180" curve2skullangle="180">
+		<Gun type="normal" gx1="400" gy1="370"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2" />
+		<Tunnel layer="3" pri="2" />
+		<TreasurePoint x="95" y="92" dist1="54" />
+		<TreasurePoint x="31" y="507" dist1="10" />
+		<TreasurePoint x="663" y="100" dist1="54" />
+		<TreasurePoint x="716" y="504" dist1="10" />
+	</Level>
+
+	<Level id="city5" dispname="Mossy Square" drawcurve="false" drawtunnel="false" curve1="city5\city5" psd="true" challengepoints="65000" acechallenge="85000" tfreq="1000" partime="9000" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="1" />
+		<Tunnel layer="2" pri="2" />
+		<Tunnel layer="3" pri="1" />
+		<Tunnel layer="4" pri="3" />
+		<Tunnel layer="5" pri="2" />
+		<PowerupRegion start="34" end="70" chance="2" curve="1"/>
+		<TreasurePoint x="43" y="46" dist1="13" />
+		<TreasurePoint x="660" y="509" dist1="38" />
+	</Level>
+
+	<Level id="city6" dispname="Mosaic Mayhem" drawcurve="false" drawtunnel="false" curve1="city6\city6" challengepoints="65000" acechallenge="90000" psd="true" tfreq="1000" partime="11000" gauntlet="1">
+		<Gun type="normal" gx1="420" gy1="340"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<PowerupRegion start="35" end="60" chance="3" curve="1"/>
+		<TreasurePoint x="72" y="68" dist1="25" />
+		<TreasurePoint x="695" y="72" dist1="15" />
+		<TreasurePoint x="140" y="518" dist1="34" />
+	</Level>
+
+	<Level id="city7" dispname="Strange Smile" drawcurve="false" drawtunnel="false" curve1="city7\city7-2" challengepoints="40000" acechallenge="70000" psd="true" tfreq="1000" partime="11000" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="310" />
+		<Tunnel layer="1" pri="2"/>
+		<TreasurePoint x="79" y="106" dist1="80" />
+		<TreasurePoint x="674" y="103" dist1="10" />
+	</Level>
+
+	<Level id="city8" dispname="Lichen Lair" drawcurve="false" drawtunnel="false" curve1="city8\city8-2" challengepoints="55000" acechallenge="75000" psd="true" tfreq="1000" partime="9500" gauntlet="1">
+		<Gun type="horiz" startx="50" starty="540" width="700" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<TreasurePoint x="286" y="55" dist1="18" />
+		<TreasurePoint x="548" y="88" dist1="40" />
+		<TreasurePoint x="387" y="270" dist1="36" />
+	</Level>
+
+	<Level id="city9" dispname="Ghosts of the Past" drawcurve="false" drawtunnel="false" curve1="city9\city9" psd="true" challengepoints="70000" acechallenge="95000" tfreq="1000" partime="10000" gauntlet="1">
+		<Gun type="normal" gx1="340" gy1="325" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<PowerupRegion start="15" end="40" chance="3" curve="1"/>
+		<TreasurePoint x="17" y="498" dist1="25" />
+		<TreasurePoint x="682" y="287" dist1="44" />
+	</Level>
+
+	<Level id="city10" dispname="Double Danger" effect1="fog" drawcurve="false" drawtunnel="false" curve1="city10\city10-1" curve2="city10\city10-2" challengepoints="70000" acechallenge="90000" psd="true" tfreq="1000" partime="11000" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="320"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<!-- TreasurePoint x="349" y="8" dist1="60" />
+		<TreasurePoint x="728" y="261" dist1="60" />
+		<TreasurePoint x="5" y="278" dist1="60" / -->
+	</Level>
+	
+		
+<!--
+													BOSS 3
+-->	
+	
+	<Level id="boss3" dispname="Baron Digo" hurryamt=".60" noflip="false" drawcurve="false" drawtunnel="false" curve1="boss3\boss3" psd="true" tfreq="1000" partime="10000" >
+		<Gun type="horiz" startx="70" starty="532" width="660" />
+		
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>	
+		<Tunnel layer="3" pri="1"/>
+		
+		<Boss type="3" subtype="2" ChanceToSpawnPowerup="77" MaxBullets="2" shotdelay="430" hpdec="5" startx="115" endx="611" y="98" strafe="true" wordbubble="Stick around!&cr;I have some putrid&cr;heads for you!"
+						art="skeleton" sepia="skeleton/skeleton_sepia" minhover="50" maxhover="150" movespeed="1.5" xshake="5" yshake="5" shottype="straight" minfire="380" maxfire="420" 
+						hallucinate="400" minbullet="4.0" maxbullet="4.0" CanCompact="false" HeartXOff="-57" HeartYOff="60" WpnHPDec="20" SpawnPowerupWhilePoweredUp="false">
+						
+						<Skeleton NumPerGroup="1" GroupDelay="300" DelayAfterEmit="300" vx="1.55" vy="0" x="-186" y="254"/>
+
+						<Hint text="Whoop! Skeleton warriors attack!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Baron Digo delivers the damage!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I am Baron of Digo!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Baron Digo rules with skeletons!" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Who's the Baron? Me! I am!" 									condition="2" deaths="-1" delay="400" mintime="0"  />
+
+						<Berserk value="maxbullets" amount="1" HealthLimit="60"/>
+						<Berserk value="shotdelay" amount="-10" HealthLimit="60"/>
+						<Berserk value="shotdelay" amount="-10" HealthLimit="30"/>
+						<Berserk value="maxbullets" amount="1" HealthLimit="30"/>
+						<Berserk value="minbullet" amount=".5" HealthLimit="60"/>
+						<Berserk value="maxbullet" amount="0.5" HealthLimit="60"/>
+						<Berserk value="minbullet" amount="1" HealthLimit="30"/>
+						<Berserk value="maxbullet" amount="1" HealthLimit="30"/>
+						<Berserk value="movespeed" amount=".35" HealthLimit="60"/>
+						<Berserk value="movespeed" amount="0.4" HealthLimit="30"/> 
+						
+						<DeathText line="You beat me so hard I forgot my own name!"/>
+						<DeathText line="And I was really attached to it, too!"/>
+						<DeathText line="Some day, some way, I'll make you pay!"/>
+		</Boss>						
+	</Level>
+
+
+<!-- ---------------------------------------- COAST LEVELS GO HERE ---------------------------------------------------------------------------- -->
+
+	<Level id="Coast1" dispname="Swamp Spin" effect1="fog" effect2="ShadowCanopy2" effect3="WillOWisp" drawcurve="false" drawtunnel="false" curve1="coast1" challengepoints="65000" acechallenge="90000" psd="true" tfreq="1000" partime="10500" gauntlet="1" curve1skullangle="26">
+		<Gun type="normal" gx1="340" gy1="345" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<PowerupRegion start="30" end="65" chance="3" curve="1"/>
+		<TreasurePoint x="713" y="472" dist1="23" />
+		<TreasurePoint x="659" y="62" dist1="23" />
+		<TreasurePoint x="154" y="526" dist1="45" />
+	</Level>
+
+	<Level id="Coast2" dispname="Deadmarsh"  effect1="WaterShader1" effect2="fog" drawcurve="false" drawtunnel="false" curve1="coast2" challengepoints="65000" acechallenge="90000" psd="true" tfreq="1000" partime="12000" gauntlet="1">
+		<Gun type="normal" gx1="370" gy1="310"/>
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="1"/>
+		<SetEffectParams num="1" resid1="COAST2_COAST2CHUTE1WATER" image1scale="false" image1x="123"	image1y="0" 	 image1offscale="0.008" image1xmod="40" image1ymod="40" image1offmult="20.0" image1offmod="2" image1timerinc="0.005"/>
+		<SetEffectParams num="1" resid2="COAST2_COAST2CHUTE2WATER" image2scale="false" image2x="1341" 	image2y="15" 	 image2offscale="0.006"	image2xmod="40" image2ymod="10" image2offmult="1.5" image2offmod="1" image2timerinc="0.002"/>		
+		<SetEffectParams num="1" resid3="COAST2_COAST2CHUTE3WATER" image3scale="false" image3x="0" 		image3y="862" 	 image3offscale="0.008" image3xmod="20" image3ymod="20" image3offmult="2.5" image3offmod="2" image3timerinc="0.005"/>
+		<SetEffectParams num="1" resid4="COAST2_COAST2CHUTE4WATER" image4scale="false" image4x="524" 	image4y="393" 	 image4offscale="0.003" image4xmod="40" image4ymod="100" image4offmult="20.5" image4offmod="2" image4timerinc="0.004"/>		
+		<SetEffectParams num="1" resid5="COAST2_COAST2CHUTE5WATER" image5scale="false" image5x="1652" 	image5y="69" 	 image5offscale="0.001" image5xmod="10" image5ymod="10" image5offmult="500.5" image5offmod="3" image5timerinc="0.008"/>		
+		<PowerupRegion start="77" end="99" chance="2" curve="1"/>
+		<PowerupRegion start="1" end="30" chance="3" curve="1"/>
+		<TreasurePoint x="60" y="483" dist1="21" />
+		<TreasurePoint x="682" y="117" dist1="10" />
+		<TreasurePoint x="682" y="419" dist1="33" />
+	</Level>
+
+	<Level id="Coast3" dispname="Stagnant Ponds" effect1="fog" effect2="ShadowCanopy1" effect3="WillOWisp" effect4="WaterShader1" drawcurve="false" drawtunnel="false" curve1="coast3" challengepoints="65000" acechallenge="95000" psd="true" tfreq="1000" partime="9500" gauntlet="1">
+		<Gun type="normal" gx1="172" gy1="360" gx2="618" gy2="286" resid1="COAST3_CHUTE6" resid2="COAST3_CHUTE7" />
+		<Tunnel layer="1" pri="3"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="1"/>
+		<PowerupRegion start="3" end="35" chance="2" curve="1"/>
+		<PowerupRegion start="61" end="99" chance="3" curve="1"/>
+		<TreasurePoint x="20" y="516" dist1="14" />
+		<TreasurePoint x="248" y="67" dist1="61" />
+		<TreasurePoint x="495" y="514" dist1="75" />
+		
+		<!-- forces fog to be drawn toplevel above balls and tunnel images -->
+		<SetEffectParams num="1" forceover="true"/>
+		
+		<SetEffectParams num="4" resid1="COAST3_COAST3CHUTE1WATER" image1scale="false" image1x="145"	image1y="0" 	 image1offscale="0.005" image1xmod="40" image1ymod="40" image1offmult="1.0" image1offmod="2" image1timerinc="0.0025"/>
+		<SetEffectParams num="4" resid2="COAST3_COAST3CHUTE2WATER" image2scale="false" image2x="6"	image2y="390" 	 image2offscale="0.006"	image2xmod="40" image2ymod="10" image2offmult="1.5" image2offmod="1" image2timerinc="0.002"/>		
+		<SetEffectParams num="4" resid4="COAST3_COAST3CHUTE4WATER" image4scale="false" image4x="526" image4y="0" 	 image4offscale="0.005" image4xmod="40" image4ymod="40" image4offmult="0.5" image4offmod="2" image4timerinc="0.005"/>
+		<SetEffectParams num="4" resid5="COAST3_COAST3CHUTE5WATER" image5scale="false" image5x="268"	image5y="259"  image5offscale="0.006" image5xmod="10" image5ymod="10" image5offmult="1.0" image5offmod="2" image5timerinc="0.0025"/>
+		<SetEffectParams num="4" resid6="COAST3_COAST3CHUTE6WATER" image6scale="false" image6x="1497" image6y="0" image6offscale="0.007" image6xmod="10" image6ymod="10" image6offmult="1.0" image6offmod="2" image6timerinc="0.002"/>
+		<SetEffectParams num="4" resid3="COAST3_COAST3CHUTE3WATER" image3scale="false" image3x="42" image3y="961" 	 image3offscale="0.005" image3xmod="20" image3ymod="20" image3offmult="2.5" image3offmod="2" image3timerinc="0.0015"/>
+		<SetEffectParams num="4" resid7="COAST3_COAST3CHUTE7WATER" image7scale="false" image7x="1108" image7y="270" 	 image7offscale="0.005" 	image7xmod="40" image7ymod="40" image7offmult="2.5" image7offmod="2.0" image7timerinc="0.002"/>
+		<SetEffectParams num="4" resid8="COAST3_COAST3CHUTE8WATER" image8scale="false" image8x="1066" image8y="968" image8offscale="0.08" 	image8xmod="40" image8ymod="40" image8offmult="0.5" image8offmod="0.5" image8timerinc="0.001"/>
+	</Level>
+
+	<Level id="Coast4" dispname="Brackish Pool" effect1="fog" effect2="ShadowCanopy1" effect3="WillOWisp" challengepoints="65000" acechallenge="95000" drawcurve="false" drawtunnel="false" curve1="coast4" psd="true" freq="1000" partime="11500" gauntlet="1">
+		<Gun type="normal" gx1="505" gy1="280"/>
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<TreasurePoint x="223" y="66" dist1="63" />
+		<TreasurePoint x="198" y="524" dist1="29" />
+		<TreasurePoint x="728" y="467" dist1="43" />
+	</Level>
+
+	<Level id="Coast5" dispname="Justified and Ancient" effect1="fog" effect2="ShadowCanopy1" challengepoints="60000" acechallenge="85000" drawcurve="false" drawtunnel="false" curve1="coast5" psd="true" tfreq="1000" partime="11000" gauntlet="1">
+		<Gun type="normal" gx1="415" gy1="310" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<PowerupRegion start="1" end="14" chance="3" curve="1"/>
+		<PowerupRegion start="86" end="99" chance="2" curve="1"/>
+		<TreasurePoint x="47" y="63" dist1="18" />
+		<TreasurePoint x="25" y="508" dist1="58" />
+		<TreasurePoint x="710" y="508" dist1="71" />
+	</Level>
+
+	<Level id="Coast6" dispname="Ancient Inlay" effect1="fog" effect2="ShadowCanopy1" challengepoints="50000" acechallenge="75000" drawcurve="false" drawtunnel="false" curve1="coast6" psd="true" tfreq="1000" partime="10000" gauntlet="1">
+		<Gun type="normal" gx1="350" gy1="335"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="1"/>
+		<PowerupRegion start="80" end="99" chance="2" curve="1"/>
+		<PowerupRegion start="3" end="23" chance="2" curve="1"/>
+		<PowerupRegion start="55" end="67" chance="3" curve="1"/>
+		<TreasurePoint x="57" y="288" dist1="88" />
+		<TreasurePoint x="606" y="197" dist1="24" />
+		<TreasurePoint x="606" y="422" dist1="21" />
+			<SetEffectParams num="1" forceover="true"/>
+	</Level>
+
+	<Level id="Coast7" dispname="Secret Circle" effect1="fog" effect2="ShadowCanopy1" effect3="WillOWisp" challengepoints="60000" acechallenge="85000" drawcurve="false" drawtunnel="false" curve1="coast7" psd="true" tfreq="1000" partime="9500" gauntlet="1">
+		<Gun type="normal" gx1="470" gy1="360" />
+		<Tunnel layer="1" pri="4"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="3"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="3"/>
+		<Tunnel layer="6" pri="1"/>
+		<PowerupRegion start="60" end="75" chance="2" curve="1"/>
+		<PowerupRegion start="3" end="25" chance="3" curve="1"/>
+		<TreasurePoint x="87" y="138" dist1="22" />
+		<TreasurePoint x="124" y="428" dist1="29" />
+		<TreasurePoint x="722" y="509" dist1="73" />
+	</Level>
+
+	<Level id="Coast8" dispname="Moai Slide" effect1="fog" effect2="ShadowCanopy1" drawcurve="false" drawtunnel="false" curve1="coast8" challengepoints="50000" acechallenge="75000" psd="true" tfreq="1000" partime="10000" gauntlet="1">
+		<Gun type="horiz" startx="60" starty="535" width="680" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<PowerupRegion start="54" end="95" chance="3" curve="1"/>
+		<TreasurePoint x="273" y="227" dist1="75" />
+		<TreasurePoint x="495" y="227" dist1="67" />
+		<TreasurePoint x="680" y="232" dist1="62" />
+	</Level>
+
+	<Level id="Coast9" dispname="Tide Pools" drawcurve="false" effect1="WaterShader1" drawtunnel="false" curve1="coast9" challengepoints="70000" acechallenge="100000" psd="true" tfreq="1000" partime="10500" gauntlet="1">
+		<Gun type="normal" gx1="480" gy1="360"/>
+		<Tunnel layer="1" pri="4"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="3"/>
+		<Tunnel layer="5" pri="3"/>
+		<Tunnel layer="6" pri="3"/>
+		<Tunnel layer="7" pri="3"/>
+		<SetEffectParams num="1" resid1="COAST9_COAST9CHUTE1WATER" image1scale="false" image1x="1134"	image1y="591" 	 image1offscale="0.005" image1xmod="40" image1ymod="40" image1offmult="1.0" image1offmod="2" image1timerinc="0.0025"/>
+		<SetEffectParams num="1" resid2="COAST9_COAST9CHUTE2WATER" image2scale="false" image2x="507"	image2y="412" 	 image2offscale="0.006"	image2xmod="40" image2ymod="10" image2offmult="1.5" image2offmod="1" image2timerinc="0.002"/>		
+		<SetEffectParams num="1" resid3="COAST9_COAST9CHUTE3WATER" image3scale="false" image3x="415" 	image3y="330" 	 image3offscale="0.005" image3xmod="20" image3ymod="20" image3offmult="2.5" image3offmod="2" image3timerinc="0.0015"/>
+		<PowerupRegion start="10" end="45" chance="2" curve="1"/>
+		<TreasurePoint x="146" y="141" dist1="12" />
+		<TreasurePoint x="88" y="408" dist1="25" />
+		<TreasurePoint x="629" y="131" dist1="48" />
+	</Level>	
+
+	<Level id="Coast10" dispname="Skull Coral" drawcurve="false" effect1="ShadowCanopy1" challengepoints="70000" acechallenge="100000" drawtunnel="false" curve1="coast10-1" curve2="coast10-2" psd="true" tfreq="1000" partime="9000" gauntlet="1" curve1skullangle="180" curve2skullangle="180">
+		<Gun type="normal" gx1="225" gy1="250" gx2="565" gy2="315" resid1="COAST10CHUTE4" resid2="COAST10CHUTE4" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<PowerupRegion start="45" end="95" chance="2" curve="1"/>
+		<PowerupRegion start="1" end="45" chance="2" curve="2"/>
+		<TreasurePoint x="10" y="58" dist1="27" />
+		<TreasurePoint x="25" y="509" dist1="11" />
+		<TreasurePoint x="731" y="514" dist1="72" />
+	</Level>
+	
+		
+<!--
+													BOSS 4
+-->	
+	
+	<Level id="boss4" dispname="Kulo Komari" effect1="lavashader" noflip="false" hurryamt=".95" drawcurve="false" drawtunnel="false" curve1="boss4\boss4" psd="true" tfreq="1000" partime="10000">
+		<Gun type="horiz" startx="70" starty="527" width="660" />
+		<SetEffectParams num="1" resid1="BOSS4_COASTWATER" image1x="-80" image1y="0" fullscene="false" distamt="0.0006" scale="0.5" scroll="0.05" affectskull="false"/>
+						
+<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="5"  hpdec="10" x1="424" y1="121" wordbubble="Too bad you're just a frog,&cr;without any method of&cr;cracking my shell!"
+						art="mosquito" sepia="mosquito/mosquito_sepia" minfire="350" maxfire="450" slowshot="500" minbullet="2.7" maxbullet="2.7" CanCompact="false" 
+						minhover="600" maxhover="750" movespeed=".1" xshake="5" yshake="5" HeartXOff="-55" HeartYOff="-100" endhoveronhit="true"
+						shottype="homing" homingspeed="0.045" NormalPassUnder="true" BombDelay="200" canshootbullets="false"
+						BombFreqMin="11" BombFreqMax="15" BombDuration="60000" DrawRadius="false" >
+						
+						
+						<Hint text="I'm grinnin' like crazy!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Bite, my pretties, bite!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="It's all about the stinging!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Confuse him, my tiny buddies!" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I love the sound of insects in the morning!" 									condition="2" deaths="-1" delay="400" mintime="0"  />
+						
+						
+						<Berserk value="movement" HealthLimit="81" x1="215" y1="222" x2="424" y2="121" x3="617" y3="212" />
+						<Berserk value="movespeed" amount="11.4" HealthLimit="81"/>
+						<Berserk value="minfire" amount="-100" HealthLimit="81"  min="50"/>
+						<Berserk value="maxfire" amount="-100" HealthLimit="81"  min="50"/>
+						<Berserk value="minbullet" amount=".5" HealthLimit="81"/>
+						<Berserk value="maxbullet" amount=".5" HealthLimit="81"/>
+						<Berserk value="homingspeed" amount=".005" HealthLimit="81"/>
+						
+						<Berserk value="movement" HealthLimit="51" x1="215" y1="222" x2="617" y2="212" />
+						<Berserk value="movespeed" amount="11.4" HealthLimit="51"/>
+						<Berserk value="minhover" amount="-100" HealthLimit="51"  min="50"/>
+						<Berserk value="maxhover" amount="-100" HealthLimit="51"  min="50"/>
+						<Berserk value="minbullet" amount=".5" HealthLimit="51"/>
+						<Berserk value="maxbullet" amount=".5" HealthLimit="51"/>
+						<Berserk value="homingspeed" amount=".005" HealthLimit="51"/>
+						
+						<DeathText line="I threw every insect in the book at you!"/>
+						<DeathText line="But you exploded me in no time flat!"/>
+						<DeathText line="Beat it, Frog! Go swimming, why don't you?"/>
+
+		</Boss>
+						
+	</Level>
+	
+
+	
+<!--                          GROTTO LEVELS GO HERE                                                  -->
+
+
+	<Level id="grotto1" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Coral Catch" drawcurve="false" drawtunnel="false" curve1="grotto1\grotto1" challengepoints="70000" acechallenge="90000" psd="true" tfreq="1000" partime="11500" gauntlet="1">
+		<Gun type="normal" gx1="390" gy1="320"/>
+		<TreasurePoint x="25" y="511" dist1="17" />
+		<TreasurePoint x="698" y="62" dist1="47" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto1/grotto1" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto2" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" challengepoints="70000" acechallenge="90000" dispname="Wave Babies" drawcurve="false" curve1="grotto2\grotto2-2" psd="true" tfreq="1000" partime="9500" gauntlet="1">
+		<Gun type="normal" gx1="391" gy1="260" />
+		<Tunnel layer="1" pri="1"/>
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+	</Level>
+
+	<Level id="grotto3" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" challengepoints="80000" acechallenge="100000" dispname="Submergathon" drawcurve="false" drawtunnel="false" curve1="grotto3\grotto3" psd="true" tfreq="1000" partime="8000" gauntlet="1" curve1skullangle="260">
+		<Gun type="normal" gx1="200" gy1="215" gx2="600" gy2="425" resid="GROTTO3CHUTE2" />
+		<Tunnel layer="1" pri="1"/>
+		<PowerupRegion start="0" end="25" chance="2" curve="1"/>
+		<PowerupRegion start="70" end="99" chance="2" curve="1"/>
+		<TreasurePoint x="185" y="456" dist1="52" />
+		<TreasurePoint x="396" y="85" dist1="62" />
+		<TreasurePoint x="579" y="121" dist1="76" />
+		
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto3/grotto3" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+	</Level>
+
+	<Level id="grotto4" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Anglers Cove" drawcurve="false" curve1="grotto4\grotto4" challengepoints="65000" acechallenge="85000" psd="true" tfreq="1000" partime="8500" gauntlet="1">	
+		<Gun type="normal" gx1="400" gy1="490" />
+		<Tunnel layer="1" pri="1"/>
+		<PowerupRegion start="1" end="30" chance="3" curve="1"/>
+		<TreasurePoint x="97" y="185" dist1="21" />
+		<TreasurePoint x="95" y="383" dist1="16" />
+		<TreasurePoint x="657" y="436" dist1="37" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto4/grotto4" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto5" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Coelacanth Cave" drawcurve="false" drawtunnel="false" curve1="grotto5\grotto5" challengepoints="65000" acechallenge="85000" psd="true" tfreq="1000" partime="10500" gauntlet="1">
+		<Gun type="normal" gx1="295" gy1="350"/>
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="1"/>
+		<Tunnel layer="5" pri="1"/>
+		<Tunnel layer="6" pri="1"/>
+		<Tunnel layer="7" pri="1"/>
+		<PowerupRegion start="1" end="15" chance="3" curve="1"/>
+		<PowerupRegion start="35" end="50" chance="3" curve="1"/>
+		<TreasurePoint x="105" y="130" dist1="22" />
+		<TreasurePoint x="83" y="443" dist1="32" />
+		<TreasurePoint x="437" y="74" dist1="57" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto6/grotto6" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto6" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Ocean Floor" drawcurve="false" drawtunnel="false" curve1="grotto6\grotto6" challengepoints="75000" acechallenge="100000" psd="true" tfreq="1000" partime="12000" gauntlet="1">
+		<Gun type="normal" gx1="400" gy1="300" />
+		<Tunnel layer="1" pri="1"/>
+		<PowerupRegion start="66" end="99" chance="2" curve="1"/>
+		<TreasurePoint x="30" y="329" dist1="71" />
+		<TreasurePoint x="149" y="42" dist1="18" />
+		<TreasurePoint x="661" y="464" dist1="46" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto5/grotto5" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto7" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Smugglers Depth" drawcurve="false" drawtunnel="false" curve1="grotto7\grotto7" challengepoints="80000" acechallenge="110000" psd="true" tfreq="1000" partime="9500" gauntlet="1" curve1skullangle="145">
+		<Gun type="normal" gx1="400" gy1="265"/>
+		<Tunnel layer="1" pri="1"/>
+		<TreasurePoint x="82" y="431" dist1="37" />
+		<TreasurePoint x="702" y="486" dist1="27" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto7/grotto7" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto8" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="Pacific Divide" drawcurve="false" drawtunnel="false" curve1="grotto8\grotto8" challengepoints="75000" acechallenge="95000" psd="true" tfreq="1000" partime="10000" gauntlet="1">
+		<Gun type="vert" startx="390" starty="100" height="405" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<PowerupRegion start="30" end="65" chance="2" curve="1"/>
+		<TreasurePoint x="67" y="166" dist1="32" />
+		<TreasurePoint x="169" y="419" dist1="48" />
+		<TreasurePoint x="550" y="195" dist1="68" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto8/grotto8" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto9" nobackground="false" effect1="ShadowCanopy3" effect2="BallWake" effect3="lavashader" dispname="The Deep" drawcurve="false" curve1="grotto9\grotto9" challengepoints="55000" acechallenge="75000" psd="true" tfreq="1000" partime="14500" gauntlet="1">
+		<Gun type="normal" gx1="370" gy1="230" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="2"/>
+		<PowerupRegion start="69" end="91" chance="4" curve="1"/>
+		<TreasurePoint x="593" y="194" dist1="78" />
+		<TreasurePoint x="67" y="379" dist1="48" />
+		<TreasurePoint x="666" y="450" dist1="27" />
+		
+		<SetEffectParams num="3" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		<!-- <SetEffectParams num="3" image1="images/levels/grotto9/grotto9" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+	</Level>
+
+	<Level id="grotto10" nobackground="true" effect1="lavashader" dispname="Shark Den" drawcurve="false" drawtunnel="false" curve1="grotto10\grotto10-1" curve2="grotto10\grotto10-2" challengepoints="90000" acechallenge="125000" psd="true" tfreq="1000" partime="11500" gauntlet="1" curve1skullangle="250" curve2skullangle="70">
+		<Gun type="normal" gx1="400" gy1="320"/>
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="2"/>
+		<Tunnel layer="5" pri="0"/>
+		<PowerupRegion start="0" end="25" chance="2" curve="1"/>
+		<PowerupRegion start="70" end="99" chance="2" curve="1"/>
+		<TreasurePoint x="71" y="525" dist1="23" />
+		<TreasurePoint x="644" y="45" dist2="23" />
+		
+		<!-- <SetEffectParams num="1" fullscene="true" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+		<SetEffectParams num="1" fullscene="false" resid1="GROTTO10_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05" affectskull="false" applytunnels="false"/>
+	</Level>
+	
+	
+		
+<!--
+													BOSS 5
+-->	
+						
+						
+<Level id="boss5" dispname="Cephalo Ka" noflip="false" hurryamt=".80" effect1="lavashader" nobackground="false" drawcurve="false" drawtunnel="false" curve1="boss5\boss5" psd="true" tfreq="1000" partime="10000"  >
+		<Gun type="horiz" startx="70" starty="527" width="660" />
+		
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+		
+		<!-- <SetEffectParams num="1" image1="images/levels/boss5/boss5" image1x="0" image1y="0" distamt="0.0005" scale="0.5" scroll="0.05"/> -->
+		<SetEffectParams num="1" fullscene="true" distamt="0.001" scale="0.5" scroll="0.05"/>
+		
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="10" hpdec="10" startx="115" endx="661" y="160" strafe="true"
+						art="squid" sepia="squid/squid_sepia" minfire="300" maxfire="330"  minbullet="5.7" maxbullet="5.7" CanCompact="false" wordbubble="I'm gonna stain&cr;you like a nice&cr;pair of slacks!"
+						minhover="575" maxhover="600" movespeed="1.5" xshake="5" yshake="5" HeartXOff="-58" HeartYOff="-100" endhoveronhit="false"
+						shottype="target" homingspeed="0.045" NormalPassUnder="false" BombDelay="200" canshootbullets="false"
+						EnrageDelay="180" EnrageShieldRestore="true" BombFreqMin="10" BombFreqMax="14" BombDuration="60000" DrawRadius="true" ShieldRespawnTime="1400" 
+						RadiusColorMode="0" ShieldHP="3" BallShieldDamage="0" HPDecProxBomb="5" UseShield="true" ShieldRotSpeed="1" ShieldPauseTime="0"
+						MinInkNum="8" MaxInkNum="12" MinInkRad="150" MaxInkRad="200" MinInkFade="1" MaxInkFade="3" InkFadeDelay="500" InkTargetsScreen="true" >
+						
+						<Berserk value="shottype" amount="straight" override="true" HealthLimit="61" />
+						<Berserk value="movespeed" amount="0.75" HealthLimit="61"/>
+						<Berserk value="minfire" amount="-50" HealthLimit="61"  min="50"/>
+						<Berserk value="maxfire" amount="-50" HealthLimit="61"  min="50"/>
+						<Berserk value="minbullet" amount="0.8" HealthLimit="61"/>
+						<Berserk value="maxbullet" amount="0.8" HealthLimit="61"/>
+						<Berserk value="strafe" amount="false" override="true" HealthLimit="31" />
+						<Berserk value="endhoveronhit" amount="true" override="true" HealthLimit="31" />
+						<Berserk value="shottype" amount="target" override="true" HealthLimit="31" />
+						<Berserk value="movespeed" amount="4.5" HealthLimit="31"/>
+						<Berserk value="maxbullets" amount="0" HealthLimit="31"/>
+						<Berserk value="minfire" amount="-100" HealthLimit="31" min="50"/>
+						<Berserk value="maxfire" amount="-100" HealthLimit="31"  min="50"/>
+						<Berserk value="minbullet" amount="0.25" HealthLimit="31"/>
+						<Berserk value="maxbullet" amount="0.25" HealthLimit="31"/>
+	
+						
+						
+						<Hint text="I'm overly bitter!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I'm annoyed!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I'm affronted!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I'm irritable!" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="You nettle me!" 									condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="You infuriate me!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Consider me maddened!"						condition="2" deaths="-1" delay="400" mintime="0"  />
+						
+
+						<DeathText line="My arm! It's broken! And it doesn't even have bones!"/>
+						<DeathText line="I really let myself down. Next time I'll be angrier."/>
+						<DeathText line="Oh, well, have fun dying on the volcano!"/>
+						</Boss>
+		
+	</Level>
+						
+						
+
+	<!-- VOLCANO LEVELS GO HERE -->
+						
+	
+	<Level id="volcano1" dispname="Flowing Tiki Rage" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="Volcano1\Volcano1" challengepoints="70000" acechallenge="90000" psd="true" tfreq="1000" partime="13000" gauntlet="1">
+			<Gun type="normal" gx1="380" gy1="360"/>			
+			<Tunnel layer="1" pri="1"/>			
+			<TreasurePoint x="95" y="152" dist1="22" />
+			<TreasurePoint x="708" y="500" dist1="50" />
+			<TreasurePoint x="81" y="463" dist1="71" />
+		
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO1_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+	
+		</Level>
+	
+	<Level id="volcano2" dispname="Subterran Solaris" nobackground="true" effect1="lavashader" drawcurve="false" curve1="Volcano2/Volcano2-3" challengepoints="90000" acechallenge="110000" psd="true" tfreq="1000" partime="12000" gauntlet="1">
+			<Gun type="normal" gx1="550" gy1="310" />
+			<Tunnel layer="1" pri="1"/>
+			<TreasurePoint x="97" y="72" dist1="61" />
+			<TreasurePoint x="702" y="71" dist1="48" />
+			<TreasurePoint x="708" y="508" dist1="35" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO2_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+	<Level id="volcano3" dispname="Reflection in Magma" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="volcano3\volcano3" challengepoints="85000" acechallenge="115000" psd="true" tfreq="1000" partime="13000" gauntlet="1">
+			<Gun type="normal" gx1="290" gy1="315" gx2="525" gy2="350" resid1="VOLCANO3CHUTE3" resid2="VOLCANO3CHUTE4"/>
+			<Wall x="375" y="0" width="48" height="600" strength="-1" color="00FFFFFF"/>
+			<Tunnel layer="1" pri="1"/>
+			<Tunnel layer="2" pri="1"/>
+			<PowerupRegion start="60" end="83" chance="2" curve="1"/>
+			<PowerupRegion start="85" end="99" chance="4" curve="1"/>
+			<TreasurePoint x="34" y="78" dist1="22" />
+			<TreasurePoint x="721" y="57" dist1="10" />
+			<TreasurePoint x="25" y="508" dist1="33" />
+			<TreasurePoint x="719" y="514" dist1="48" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO3_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+	<Level id="volcano4" dispname="Obsidian Isle" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="true" curve1="Volcano4\Volcano4" challengepoints="90000" acechallenge="125000" psd="true" tfreq="1000" partime="12000" gauntlet="1">
+			<Gun type="normal" gx1="460" gy1="315"/>
+			<Tunnel layer="1" pri="1"/>
+			<PowerupRegion start="3" end="40" chance="3" curve="1"/>
+			<TreasurePoint x="56" y="167" dist1="15" />
+			<TreasurePoint x="708" y="66" dist1="28" />
+			<TreasurePoint x="726" y="517" dist1="33" />
+		
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO4_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+		
+		<Level id="volcano5" dispname="Underworld Remnants" nobackground="true" effect1="lavashader" drawcurve="false" curve1="Volcano5\Volcano5-2" challengepoints="80000" acechallenge="105000" psd="true" tfreq="1000" partime="12000" gauntlet="1" curve1skullangle="157">
+			<Gun type="normal" gx1="333" gy1="324" />
+			<Tunnel layer="1" pri="1" x="14" y="268" />
+			<Tunnel layer="2" pri="1" x="299" y="44" />
+			<Tunnel layer="3" pri="1" x="505" y="316" />
+			<TreasurePoint x="120" y="146" dist1="72" />
+			<TreasurePoint x="561" y="135" dist1="46" />
+			<TreasurePoint x="24" y="513" dist1="18" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO5_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>	
+	
+		<Level id="volcano6" dispname="Thermal Vortex" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="Volcano6\Volcano6" challengepoints="85000" acechallenge="115000" psd="true" tfreq="1000" partime="13000" gauntlet="1">
+			<Gun type="normal" gx1="420" gy1="320"/>
+			<Tunnel layer="1" pri="1"/>
+			<Tunnel layer="2" pri="1" />
+			<Tunnel layer="3" pri="2"/>
+			<Tunnel layer="4" pri="1"/>
+			<Tunnel layer="5" pri="1"/>
+			<PowerupRegion start="0" end="12" chance="3" curve="1"/>
+			<PowerupRegion start="70" end="99" chance="3" curve="1"/>
+			<TreasurePoint x="53" y="92" dist1="31" />
+			<TreasurePoint x="10" y="409" dist1="23" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO6_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+		<Level id="volcano7" dispname="Molten Dais" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="volcano7\volcano7-2" challengepoints="85000" acechallenge="110000" psd="true" tfreq="1000" partime="12000" gauntlet="1">
+			<Gun type="normal" gx1="385" gy1="355"/>
+			<Tunnel layer="1" pri="1"/>
+			<Tunnel layer="2" pri="1"/>
+			<Tunnel layer="3" pri="1"/>
+			<Tunnel layer="4" pri="1"/>
+			<TreasurePoint x="30" y="68" dist1="20" />
+			<TreasurePoint x="684" y="87" dist1="13" />
+			<TreasurePoint x="68" y="524" dist1="28" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO7_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+		<Level id="volcano8" dispname="Basaltic Approach" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="volcano8\volcano8-3" challengepoints="60000" acechallenge="80000" psd="true" tfreq="1000" partime="13500" gauntlet="1" curve1skullangle="280">
+			<Gun type="normal" gx1="365" gy1="230"/>
+			<Tunnel layer="1" pri="1" x="572" y="0" />
+			<Tunnel layer="2" pri="1" x="685" y="160" />
+			<Tunnel layer="3" pri="1" x="627" y="500" />
+			<TreasurePoint x="26" y="102" dist1="74" />
+			<TreasurePoint x="326" y="506" dist1="44" />
+			<TreasurePoint x="720" y="209" dist1="10" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO8_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+		<Level id="volcano9" dispname="Searing Visage" drawcurve="false" nobackground="true" effect1="lavashader" challengepoints="90000" acechallenge="135000" drawtunnel="false" curve1="volcano9\volcano9-1" curve2="Volcano9\Volcano9-2" psd="true" tfreq="1000" partime="13000" gauntlet="1" curve1skullangle="152" curve2skullangle="352">
+			<Gun type="normal" gx1="420" gy1="375"/>
+			<Tunnel layer="1" pri="1"/>
+			<Tunnel layer="2" pri="1"/>
+			<TreasurePoint x="42" y="57" dist1="26" />
+			<TreasurePoint x="699" y="86" dist2="24" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO9_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+		<Level id="volcano10" dispname="Descent into Anguish" drawcurve="false" nobackground="true" effect1="lavashader" challengepoints="95000" acechallenge="135000" drawtunnel="false" curve1="volcano10\volcano10-4" psd="true" tfreq="1000" partime="13500" gauntlet="1">
+			<Gun type="normal" gx1="370" gy1="330"/>
+			<Tunnel layer="1" pri="1"/>
+			<TreasurePoint x="61" y="71" dist1="19" />
+			<TreasurePoint x="687" y="81" dist1="26" />
+			<TreasurePoint x="127" y="525" dist1="13" />
+			
+			<SetEffectParams num="1" fullscene="false" resid1="VOLCANO10_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+		</Level>
+	
+		
+		<!--
+													BOSS 6
+		-->
+
+	<Level id="boss6part1" dispname="Zhaka Mu" endsequence="1" hurryamt=".60" nobackground="true" effect1="lavashader" drawcurve="false" drawtunnel="false" curve1="boss6\boss6p1-1" curve2="boss6\boss6p1-2" psd="true" tfreq="1000" torchtime="2500000" >
+		<Gun type="normal" gx1="403" gy1="280" />
+
+<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+
+		<Torch x="30" y="40" w="57" h="78"/>
+		<Torch x="30" y="475" w="57" h="78"/>
+		<Torch x="720" y="40" w="57" h="78"/>
+		<Torch x="720" y="475" w="57" h="78"/>
+
+		<SetEffectParams num="1" fullscene="false" resid1="BOSS6PART1_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+
+
+	</Level>
+
+	<Level id="debugboss6part2" dispname="Drumstick Willie" endsequence="2" effect1="lavashader" hurryamt=".65" noflip="false" drawcurve="false" drawtunnel="false" nobackground="true" curve1="boss6\boss6p2" psd="true" tfreq="1000" partime="10000" >
+		<Gun type="horiz" startx="70" starty="537" width="660" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		
+
+		<SetEffectParams num="1" fullscene="false" resid1="DEBUGBOSS6PART2_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="60" hpdec="5" startx="115" endx="621" y="100" minhover="50" maxhover="150" movespeed="1.5" xshake="5" yshake="5"
+						art="lame" sepia="lame/lametiki_sepia" shottype="target" minfire="250" maxfire="350" stun="200" minbullet="3.6" maxbullet="4.0" CanCompact="false"  endhoveronhit="false" flightspeed="5.0" minflightdist="300"
+						strafe="true" HeartXOff="-132" HeartYOff="105" wordbubble="They call me&cr;Drumstick Willie!" >						
+
+						</Boss>
+
+
+	</Level>
+
+	<Level id="debugboss6part3" dispname="His Crumbleness" endsequence="3" nobackground="true" effect1="lavashader" hurryamt=".70" noflip="false" drawcurve="false" drawtunnel="false" curve1="boss6\boss6p3" psd="true" tfreq="1000" partime="10000" >
+		<Gun type="horiz" startx="70" starty="532" width="660" />
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+		<Tunnel layer="4" pri="0" aboveshadows="true"/>
+		<Tunnel layer="5" pri="0" aboveshadows="true"/>
+
+		<SetEffectParams num="1" fullscene="false" resid1="DEBUGBOSS6PART3_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+
+		<Boss type="3" subtype="2" MaxBullets="2" shotdelay="0" hpdec="10" startx="105" endx="596" y="98" strafe="true"
+						art="stonehead" sepia="stonehead/easter_sepia" minhover="250" maxhover="350" movespeed="2.1" xshake="5" yshake="5" shottype="target" maxbounces="2" minfire="150" maxfire="250" 
+						stun="150" minbullet="5.1" maxbullet="5.1" CanCompact="false" HeartXOff="-51" HeartYOff="-97"  flightspeed="9.0" 
+						endhoveronhit="false" minflightdist="300" wordbubble="FOOM!" >
+
+						<Berserk value="strafe" amount="false" override="true" HealthLimit="71"/>
+						<!-- <Berserk value="movespeed" amount="-2.1" HealthLimit="61"/> -->
+						<Berserk value="endhoveronhit" amount="true" override="true" HealthLimit="71"/>
+						<Berserk value="movespeed" amount="1" HealthLimit="71"/>
+						<Berserk value="minfire" amount="-25" HealthLimit="71"  min="50"/>
+						<Berserk value="maxfire" amount="-125" HealthLimit="71"  min="50"/>
+						<Hula vx="1.5" projvy="3.5" projrange="-50" spawn="400" projchance="100" spawny="240" berserk="100" slow="250" amnesty="100" />
+						<Berserk value="minfire" amount="0" HealthLimit="91"  min="50"/>
+						<Berserk value="maxfire" amount="0" HealthLimit="91"  min="50"/>
+						<!-- <Berserk value="movespeed" amount="2.4" HealthLimit="31"/> -->
+						<!-- <Berserk value="shottype" amount="straight" override="true" HealthLimit="91"/> -->
+						<Berserk value="strafe" amount="true" override="true" HealthLimit="91"/>
+						<Berserk value="endhoveronhit" amount="false" override="true" HealthLimit="91"/>
+						
+						<Hint text="Stern I am, and stone!"								condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I have no heart to care!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="This frown means death!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I am a rock, I am this island." 							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="I am the totem of despair!" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+
+		</Boss>						
+		
+<Boss type="3" subtype="2" MaxBullets="1" shotdelay="60" hpdec="10" startx="115" endx="611" y="98" strafe="true"
+						art="volcano" sepia="volcano/volcano_sepia" minhover="50" maxhover="150" movespeed="2.15" xshake="5" yshake="5" shottype="volcano" minfire="350" maxfire="350" 
+						stun="250" VolcanoOffscreenDelay="200"  minbullet="5.1" maxbullet="6.1" CanCompact="false" HeartXOff="-51" HeartYOff="-97"
+						wordbubble="Welcome to Hell, Frog.&cr;I am your end." >
+
+						<Berserk value="maxbullets" amount="1" HealthLimit="41"/>
+						<Berserk value="maxbullet" amount="3" HealthLimit="41"/>
+						<Berserk value="minbullet" amount="3" HealthLimit="41"/>
+						<Berserk value="movespeed" amount=".35" HealthLimit="41"/>
+						<Berserk value="minfire" amount="50" HealthLimit="41"/>	
+						<Berserk value="maxfire" amount="50" HealthLimit="41"/>
+						<Berserk value="frogstun" amount="-50" HealthLimit="41"/>
+						<Berserk value="shotdelay" amount="-10" HealthLimit="41"/>
+						
+						<Berserk value="maxbullets" amount="1" HealthLimit="21"/>
+						<Berserk value="minfire" amount="75" HealthLimit="21"/>	
+						<Berserk value="maxfire" amount="75" HealthLimit="21"/>	
+						<Berserk value="maxbullet" amount="4" HealthLimit="21"/>
+						<Berserk value="minbullet" amount="4" HealthLimit="21"/>	
+						<Berserk value="movespeed" amount=".25" HealthLimit="21"/>
+						<Berserk value="frogstun" amount="-25" HealthLimit="21"/>
+						<Berserk value="shotdelay" amount="-10" HealthLimit="21"/>
+						
+						<Hint text="I crush you!"				condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="You sully our island!"						condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="The blood of the volcano awaits!"							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="No living thing can survive!" 							condition="2" deaths="-1" delay="400" mintime="0"  />
+						<Hint text="Your soul shall be forfeit!" 								condition="2" deaths="-1" delay="400" mintime="0"  />
+
+			</Boss>	
+		
+</Level>
+	
+	<Level id="debugboss6part5" dispname="Shadow Frog" endsequence="5" effect1="lavashader" nobackground="true" FINALLEVEL="true" hurryamt=".80" noflip="false" drawcurve="false" drawtunnel="false" curve1="boss6\boss6p4" psd="true" tfreq="1000" partime="10000" >
+		<Gun type="horiz" startx="70" starty="532" width="660" />
+
+		<Tunnel layer="1" pri="1"/>
+		<Tunnel layer="2" pri="1"/>
+		<Tunnel layer="3" pri="1"/>
+
+		<SetEffectParams num="1" fullscene="false" resid1="DEBUGBOSS6PART5_BKGRND" image1x="-80" image1y="0" distamt="0.0005" scale="1.0" scroll="0.1"/>
+
+		<Boss type="3" subtype="2" MaxBullets="1" shotdelay="20" hpdec="10" startx="115" endx="611" y="98" strafe="false"
+						art="darkfrog" Retaliation="1" RetalSpeedMin="6" RetalSpeedMax="6" minhover="50" maxhover="150" movespeed="2.0" xshake="5" yshake="5" 
+						shottype="sine" minfire="150" maxfire="150" movemode="1" Accel="20" MoveDelay="0" stun="125" 
+						minbullet="4.7" maxbullet="5.4" CanCompact="false" HeartXOff="-57" HeartYOff="75" retalshotdelay="10"
+						minamp="5" maxamp="5" minfreq=".10" maxfreq=".10" minsineyinc="4" maxsineyinc="4" sineshotstargetplayer="false" maxsineshottime="100" minsineshottime="100"
+						wordbubble="Let's see how you fare&cr;against your shadow!" >
+
+
+
+						<Berserk value="movemode" amount="2" override="true" HealthLimit="51"/>	
+						<Berserk value="retalspeedmin" amount="2" HealthLimit="51" />
+						<Berserk value="retalspeedmax" amount="2" HealthLimit="51" />
+						<Berserk value="maxbullets" amount="0" HealthLimit="51"/>	
+						<Berserk value="maxbullet" amount="3.0" HealthLimit="51"/>	
+						<Berserk value="minbullet" amount="3.7" HealthLimit="51"/>
+						<Berserk value="maxfire" amount="-50" HealthLimit="51"/>	
+						<Berserk value="minfire" amount="-50" HealthLimit="51"/>
+						<Berserk value="frogstun" amount="75" HealthLimit="51"/>
+						<Berserk value="shottype" amount="normal" override="true" HealthLimit="51" />
+
+						<Berserk value="retalspeedmin" amount="1" HealthLimit="31"/>
+						<Berserk value="retalspeedmax" amount="1" HealthLimit="31"/>
+						<Berserk value="maxbullet" amount="1" HealthLimit="31"/>	
+						<Berserk value="minbullet" amount="1" HealthLimit="31"/>
+						<Berserk value="maxfire" amount="80" HealthLimit="51"/>	
+						<Berserk value="minfire" amount="80" HealthLimit="51"/>
+						<Berserk value="MaxBullets" amount="1" HealthLimit="31"/>	
+						<Berserk value="shottype" amount="target" override="true" HealthLimit="31" />
+						
+
+						<DeathText line="You have beaten every curve we threw at you."/>
+						<DeathText line="And so now I reveal the final truth."/>
+						<DeathText line="You have long thought yourself alone."/>
+						<DeathText line="But... you are not the last of your kind."/>				
+								</Boss>
+	</Level>
+
+
+	<!-- IRON FROG LEVELS: DO NOT REMOVE OR THE GAME WILL CRASH RANDOMLY. YOU MAY REPLACE THOUGH WHEN THE TIME COMES TO EDIT THESE BUT THERE MUST
+			BE 10 AND THEY MUST BE AT THE **END** OF THE XML FILE -->
+
+	<Level id="ironfrog1" dispname="Serpent Stare" drawcurve="false" drawtunnel="false" curve1="ironfrog1\ironfrog1" challengepoints="120000" acechallenge="145000" psd="true" tfreq="1000" partime="10000" ironfrog="true" curve1skullangle="290">
+		<Gun type="normal" gx1="380" gy1="320"/>
+		<TreasurePoint x="99" y="54" dist1="17" />
+		<TreasurePoint x="639" y="63" dist1="26" />
+		<TreasurePoint x="654" y="508" dist1="37" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+		<Tunnel layer="4" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog2" dispname="Fungal Fatality" drawcurve="false" curve1="ironfrog2\ironfrog2" challengepoints="45000" acechallenge="65000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+		<Gun type="normal" gx1="100" gy1="500" />
+		<TreasurePoint x="683" y="399" dist1="38" />
+		<TreasurePoint x="251" y="64" dist1="53" />
+		<TreasurePoint x="498" y="437" dist1="80" />
+		<Tunnel layer="1" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog3" dispname="Lot's Wife" drawcurve="false" curve1="ironfrog3\ironfrog3" challengepoints="100000" acechallenge="125000" psd="true" tfreq="1000" partime="10000" ironfrog="true" curve1skullangle="26">
+    	<Gun type="normal" gx1="592" gy1="218" gx2="210" gy2="432" resid1="IRONFROG3PADLEFT" resid2="IRONFROG3PADRIGHT" />
+		<TreasurePoint x="617" y="483" dist1="64" />
+		<TreasurePoint x="95" y="150" dist1="89" />
+    	<Tunnel layer="1" pri="2" />
+	</Level>
+
+	<Level id="ironfrog4" dispname="Future Fuels" drawcurve="false" curve1="ironfrog4\ironfrog4" challengepoints="100000" acechallenge="125000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+     	<Gun type="normal" gx1="377" gy1="290" />
+		<TreasurePoint x="24" y="423" dist1="50" />
+		<TreasurePoint x="397" y="515" dist1="60" />
+		<TreasurePoint x="696" y="335" dist1="73" />
+	</Level>
+
+	<Level id="ironfrog5" dispname="Fossil Food" curve1="ironfrog5\ironfrog5-1" curve2="ironfrog5\ironfrog5-2" challengepoints="120000" acechallenge="150000" psd="true" tfreq="1000" partime="10000" ironfrog="true" curve1skullangle="273" curve2skullangle="96" >
+    	<Gun type="normal" gx1="400" gy1="310"/>
+		<TreasurePoint x="36" y="52" dist1="20" />
+		<TreasurePoint x="719" y="520" dist1="20" />
+    	<Tunnel layer="1" pri="2"/>
+    	<Tunnel layer="2" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog6" dispname="What is that thing?" drawcurve="false" drawtunnel="false" curve1="ironfrog6\ironfrog6" challengepoints="120000" acechallenge="145000" psd="true" tfreq="1000" partime="10000" ironfrog="true" curve1skullangle="170" >
+		<Gun type="normal" gx1="410" gy1="300"/>
+		<TreasurePoint x="255" y="431" dist1="12" />
+		<TreasurePoint x="682" y="226" dist1="82" />
+		<Tunnel layer="1" pri="3"/>
+    	<Tunnel layer="2" pri="1"/>
+    	<Tunnel layer="3" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog7" dispname="Creeper Creeps" curve1="ironfrog7\ironfrog7" challengepoints="90000" acechallenge="120000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+    	<Gun type="normal" gx1="385" gy1="310" />
+		<TreasurePoint x="99" y="106" dist1="29" />
+    	<Tunnel layer="1" pri="2"/>
+    	<Tunnel layer="2" pri="2"/>
+    	<Tunnel layer="3" pri="2"/>
+    	<Tunnel layer="4" pri="2"/>
+    	<Tunnel layer="5" pri="2"/>
+    	<Tunnel layer="6" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog8" dispname="Web Two Point Oh" curve1="ironfrog8\ironfrog8-1" curve2="ironfrog8\ironfrog8-2" challengepoints="90000" acechallenge="120000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+		<Gun type="vert" startx="400" starty="100" height="410" />
+		<Tunnel layer="1" pri="2"/>
+    	<Tunnel layer="2" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog9" dispname="As The Worm Turns" curve1="ironfrog9\ironfrog9" challengepoints="80000" acechallenge="120000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+    	<Gun type="normal" gx1="420" gy1="485"/>
+		<TreasurePoint x="606" y="227" dist1="20" />
+		<TreasurePoint x="661" y="422" dist1="25" />
+    	<Tunnel layer="1" pri="2"/>
+	</Level>
+
+	<Level id="ironfrog10" dispname="Chew Your Food" curve1="ironfrog10\ironfrog10" challengepoints="95000" acechallenge="125000" psd="true" tfreq="1000" partime="10000" ironfrog="true">
+		<Gun type="normal" gx1="370" gy1="260"/>
+		<TreasurePoint x="99" y="418" dist1="20" />
+		<TreasurePoint x="644" y="435" dist1="10" />
+		<Tunnel layer="1" pri="2"/>
+		<Tunnel layer="2" pri="2"/>
+		<Tunnel layer="3" pri="2"/>
+	</Level>
+
+
+
+<!-- This controls the placement of the billions of dots on the map screen so I'd suggest you don't delete it -->
+	<Dot num="1" x="1583" y="785"/>
+	<Dot num="2" x="1567" y="767"/>
+	<Dot num="3" x="1550" y="755"/>
+	<Dot num="4" x="1524" y="744"/>
+	<Dot num="5" x="1508" y="730"/>
+	<Dot num="6" x="1501" y="712"/>
+	<Dot num="7" x="1498" y="687"/>
+	<Dot num="8" x="1499" y="664"/>
+	<Dot num="9" x="1494" y="648"/>
+	<Dot num="10" x="1484" y="627"/>
+	<Dot num="11" x="1473" y="610"/>
+	<Dot num="12" x="1460" y="594"/>
+	<Dot num="13" x="1437" y="587"/>
+	<Dot num="14" x="1414" y="583"/>
+	<Dot num="15" x="1397" y="582"/>
+	<Dot num="16" x="1376" y="576"/>
+	<Dot num="17" x="1376" y="557"/>
+	<Dot num="18" x="1392" y="546"/>
+	<Dot num="19" x="1400" y="524"/>
+	<Dot num="20" x="1403" y="506"/>
+	<Dot num="21" x="1393" y="490"/>
+	<Dot num="22" x="1376" y="475"/>
+	<Dot num="23" x="1365" y="463"/>
+	<Dot num="24" x="1353" y="450"/>
+	<Dot num="25" x="1336" y="435"/>
+	<Dot num="26" x="1321" y="422"/>
+	<Dot num="27" x="1309" y="409"/>
+	<Dot num="28" x="1287" y="400"/>
+	<Dot num="29" x="1267" y="394"/>
+	<Dot num="30" x="1248" y="388"/>
+	<Dot num="31" x="1220" y="380"/>
+	<Dot num="32" x="1220" y="360"/>
+	<Dot num="33" x="1227" y="340"/>
+	<Dot num="34" x="1216" y="320"/>
+	<Dot num="35" x="1201" y="307"/>
+	<Dot num="36" x="1183" y="307"/>
+	<Dot num="37" x="1161" y="294"/>
+	<Dot num="38" x="1159" y="274"/>
+	<Dot num="39" x="1159" y="251"/>
+	<Dot num="40" x="1155" y="227"/>
+	<Dot num="41" x="1149" y="208"/>
+	<Dot num="42" x="1135" y="198"/>
+	<Dot num="43" x="1114" y="193"/>
+	<Dot num="44" x="1093" y="201"/>
+	<Dot num="45" x="1081" y="219"/>
+	<Dot num="46" x="1076" y="239"/>
+	<Dot num="47" x="1076" y="266"/>
+	<Dot num="48" x="1071" y="287"/>
+	<Dot num="49" x="1062" y="307"/>
+	<Dot num="50" x="1048" y="320"/>
+	<Dot num="51" x="1036" y="336"/>
+	<Dot num="52" x="1033" y="354"/>
+	<Dot num="53" x="1042" y="375"/>
+	<Dot num="54" x="1052" y="391"/>
+	<Dot num="55" x="1065" y="406"/>
+	<Dot num="56" x="1086" y="427"/>
+	<Dot num="57" x="1098" y="442"/>
+	<Dot num="58" x="1107" y="460"/>
+	<Dot num="59" x="1118" y="482"/>
+	<Dot num="60" x="1125" y="501"/>
+	<Dot num="61" x="1123" y="524"/>
+	<Dot num="62" x="1116" y="546"/>
+	<Dot num="63" x="1102" y="562"/>
+	<Dot num="64" x="1086" y="576"/>
+	<Dot num="65" x="1082" y="598"/>
+	<Dot num="66" x="1083" y="617"/>
+	<Dot num="67" x="1100" y="630"/>
+	<Dot num="68" x="1114" y="649"/>
+	<Dot num="69" x="1110" y="664"/>
+	<Dot num="70" x="1079" y="660"/>
+	<Dot num="71" x="1057" y="655"/>
+	<Dot num="72" x="1038" y="646"/>
+	<Dot num="73" x="1016" y="634"/>
+	<Dot num="74" x="998" y="624"/>
+	<Dot num="75" x="980" y="616"/>
+	<Dot num="76" x="973" y="595"/>
+	<Dot num="77" x="963" y="578"/>
+	<Dot num="78" x="947" y="579"/>
+	<Dot num="79" x="927" y="575"/>
+	<Dot num="80" x="937" y="551"/>
+	<Dot num="81" x="916" y="538"/>
+	<Dot num="82" x="909" y="512"/>
+	<Dot num="83" x="899" y="499"/>
+	<Dot num="84" x="882" y="505"/>
+	<Dot num="85" x="862" y="512"/>
+	<Dot num="86" x="840" y="516"/>
+	<Dot num="87" x="822" y="504"/>
+	<Dot num="88" x="790" y="493"/>
+	<Dot num="89" x="769" y="493"/>
+	<Dot num="90" x="746" y="487"/>
+	<Dot num="91" x="723" y="484"/>
+	<Dot num="92" x="713" y="471"/>
+	<Dot num="93" x="697" y="461"/>
+	<Dot num="94" x="674" y="450"/>
+	<Dot num="95" x="654" y="453"/>
+	<Dot num="96" x="634" y="463"/>
+	<Dot num="97" x="645" y="480"/>
+	<Dot num="98" x="659" y="498"/>
+	<Dot num="99" x="674" y="512"/>
+	<Dot num="100" x="684" y="528"/>
+	<Dot num="101" x="698" y="546"/>
+	<Dot num="102" x="708" y="562"/>
+	<Dot num="103" x="723" y="577"/>
+	<Dot num="104" x="751" y="582"/>
+	<Dot num="105" x="774" y="569"/>
+	<Dot num="106" x="797" y="575"/>
+	<Dot num="107" x="811" y="594"/>
+	<Dot num="108" x="816" y="613"/>
+	<Dot num="109" x="807" y="633"/>
+	<Dot num="110" x="792" y="652"/>
+	<Dot num="111" x="769" y="664"/>
+	<Dot num="112" x="742" y="672"/>
+	<Dot num="113" x="715" y="679"/>
+	<Dot num="114" x="689" y="687"/>
+	<Dot num="115" x="670" y="702"/>
+	<Dot num="116" x="659" y="725"/>
+	<Dot num="117" x="649" y="744"/>
+	<Dot num="118" x="620" y="750"/>
+	<Dot num="119" x="599" y="756"/>
+	<Dot num="120" x="581" y="767"/>
+	<Dot num="121" x="555" y="765"/>
+	<Dot num="122" x="537" y="755"/>
+	<Dot num="123" x="524" y="736"/>
+	<Dot num="124" x="511" y="715"/>
+	<Dot num="125" x="503" y="693"/>
+	<Dot num="126" x="495" y="674"/>
+	<Dot num="127" x="484" y="649"/>
+	<Dot num="128" x="477" y="629"/>
+	<Dot num="129" x="470" y="608"/>
+	<Dot num="130" x="459" y="584"/>
+	<Dot num="131" x="450" y="563"/>
+	<Dot num="132" x="439" y="545"/>
+	<Dot num="133" x="425" y="525"/>
+	<Dot num="134" x="413" y="507"/>
+	<Dot num="135" x="401" y="485"/>
+	
+<Dot num="136" x="395" y="461"/>
+	<Dot num="137" x="391" y="440"/>
+	<Dot num="138" x="392" y="420"/>
+	<Dot num="139" x="395" y="399"/>
+	<Dot num="140" x="403" y="380"/>
+	<Dot num="141" x="412" y="362"/>
+	<Dot num="142" x="419" y="340"/>
+	<Dot num="143" x="435" y="320"/>
+	<Dot num="144" x="449" y="305"/>
+	<Dot num="145" x="467" y="308"/>
+	<Dot num="146" x="491" y="299"/>
+	<Dot num="147" x="503" y="285"/>
+	<Dot num="148" x="520" y="269"/>
+	<Dot num="149" x="542" y="260"/>
+	<Dot num="150" x="559" y="251"/>
+	<Dot num="151" x="574" y="236"/>
+	<Dot num="152" x="594" y="228"/>
+	<Dot num="153" x="617" y="225"/>
+	<Dot num="154" x="638" y="226"/>
+	<Dot num="155" x="638" y="251"/>
+	<Dot num="156" x="633" y="271"/>
+	<Dot num="157" x="613" y="286"/>
+	<Dot num="158" x="596" y="304"/>
+	<Dot num="159" x="586" y="323"/>
+	<Dot num="160" x="604" y="338"/>
+	<Dot num="161" x="627" y="335"/>
+	<Dot num="162" x="648" y="329"/>
+	<Dot num="163" x="665" y="318"/>
+	<Dot num="164" x="684" y="305"/>
+	<Dot num="165" x="702" y="294"/>
+	<Dot num="166" x="718" y="274"/>
+	<Dot num="167" x="732" y="256"/>
+	<Dot num="168" x="744" y="239"/>
+	<Dot num="169" x="761" y="229"/>
+	<Dot num="170" x="787" y="236"/>
+	<Dot num="171" x="804" y="251"/>
+	<Dot num="172" x="818" y="270"/>
+	<Dot num="173" x="826" y="298"/>
+	<Dot num="174" x="801" y="301"/>
+	<Dot num="175" x="765" y="296"/>	
+</Config>

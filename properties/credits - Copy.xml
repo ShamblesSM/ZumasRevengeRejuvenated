@@ -1,0 +1,101 @@
+<!-- all pixel values should be specified for the hi-res version, i.e. 1600x1200 -->
+
+<Credits>
+
+	<Defaults SpaceAfterTitle="-10" SpaceAfterName="50" SpaceAfterPic="0" ScrollSpeed="0.5" TitleColor="FFFF00" NameColor="FFFFFF" TitleFont="FONT_SHAGEXOTICA36OUTLINE" NameFont="FONT_SHAGEXOTICA68_NORMAL"/>
+	
+	<Image resid="IMAGE_CREDITS_ZUMA" YOff="-500" x="center" polaroid="false"/>
+	<Text mode="adventure" Title="WELL DONE!" TitleFont="FONT_SHAGEXOTICA68_NORMAL" SpaceAfterTitle="30" YOff="30" TitleColor="FFFFFF"/>
+	<Text mode="adventure" Title="You have rescued Ms. Zuma from the evil clutches of Zhaka Mu!" TitleFont="FONT_SHAGEXOTICA32_NORMAL" SpaceAfterTitle="10" TitleColor="FFFFFF"/>
+	<Text mode="adventure" Title="But another mystery remains...only a Heroic Frog can solve it." TitleFont="FONT_SHAGEXOTICA32_NORMAL" SpaceAfterTitle="10" TitleColor="FFFFFF"/>
+	
+	<Text mode="heroic" Title="WELL DONE!" TitleFont="FONT_SHAGEXOTICA68_NORMAL" SpaceAfterTitle="30" YOff="30" TitleColor="FFFFFF"/>
+	<Text mode="heroic" Title="You have rescued the scrumptious cheeseburger and shake!" TitleFont="FONT_SHAGEXOTICA32_NORMAL" SpaceAfterTitle="10" TitleColor="FFFFFF"/>
+	<Text mode="heroic" Title="But...where are the FRIES?!" TitleFont="FONT_SHAGEXOTICA32_NORMAL" SpaceAfterTitle="10" TitleColor="FFFFFF"/>
+	<Text mode="heroic" Title="Alas, this is one mystery that may never be solved." TitleFont="FONT_SHAGEXOTICA32_NORMAL" SpaceAfterTitle="10" TitleColor="FFFFFF"/>
+	
+	<Text Title="CREDITS" TitleFont="FONT_SHAGEXOTICA68_NORMAL" YOff="100" x="-100" SpaceAfterTitle="50" TitleColor="FFFFFF"/>
+	
+	<Image resid="IMAGE_CREDITS_IMAGES_1" YOff="100" x="100"/>
+	<Text Title="Programmer" Name="Jeff Weinstein" YOff="-310" XCenterOff="150"/>
+	<Text Title="Creative Director" Name="Jason Kapalka" XCenterOff="150"/>
+	<Text Title="Producers" Name="Ben Lyon" XCenterOff="150"/>
+	<Text Title="" Name="Sukhbir Sidhu" YOff="-60" XCenterOff="150"/>	
+
+	<Image resid="IMAGE_CREDITS_IMAGES_2" YOff="200" x="440" xflip="true"/>
+	<Text Title="Art Director" Name="Rick Schmitz" YOff="-276" XCenterOff="-150"/>
+	<Text Title="Artists" Name="Marcia Broderick" XCenterOff="-150"/>
+	<Text Title="" Name="Walter Wilson" YOff="-60" XCenterOff="-150"/>	
+	<Text Title="" Name="Heather Ivy" YOff="-60" XCenterOff="-150"/>
+	
+	<Image resid="IMAGE_CREDITS_IMAGES_3" YOff="100" x="100"/>
+	<Text Title="Level Design" Name="Scott Lantz" YOff="-300" XCenterOff="150"/>
+	<Text Title="" Name="Ben Lyon" XCenterOff="150" YOff="-60"/>
+	<Text Title="Additional Levels" Name="Michael Racioppi" XCenterOff="150"/>
+	<Text Title="" Name="Adam MacDonnell" YOff="-60" XCenterOff="150"/>	
+	<Text Title="" Name="Shawn Conard" YOff="-60" XCenterOff="150"/>
+	
+	<Image resid="IMAGE_CREDITS_IMAGES_4" YOff="200" x="440" xflip="true"/>
+	<Text Title="Additional Programming" Name="Brian Fiete" YOff="-220" XCenterOff="-150"/>
+	<Text Title="" Name="Josh Langley" YOff = "-60" XCenterOff="-150"/>
+	<Text Title="Writing" Name="Stephen Notley" XCenterOff="-150"/>	
+		
+	<Image resid="IMAGE_CREDITS_IMAGES_5" YOff="200" x="100"/>
+	<Text Title="Sound Effects" Name="Jason Kapalka" YOff="-300" XCenterOff="150"/>
+	<Text Title="" Name="Somatone" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Interactive Audio" YOff="-60" XCenterOff="150"/>
+	<Text Title="Music" Name="Phillipe Charon" XCenterOff="150"/>	
+	<Text Title="" Name="Stephane Brault" YOff="-60" XCenterOff="150"/>
+		
+	<Image resid="IMAGE_CREDITS_IMAGES_6" YOff="200" x="440" xflip="true"/>
+	<Text Title="Original Zuma Programming" Name="" YOff="-290" XCenterOff="-150"/>
+	<Text Title="" Name="Brian Rothstein" XCenterOff="-150"/>
+	<Text Title="PopCap Framework" Name="Brian Fiete" XCenterOff="-150"/>	
+	<Text Title="" Name="Chris Hargrove" YOff="-60" XCenterOff="-150"/>
+	<Text Title="" Name="David Parton" YOff="-60" XCenterOff="-150"/>
+	<Text Title="" Name="Brian Rothstein" YOff="-60" XCenterOff="-150"/>
+	
+	<Image resid="IMAGE_CREDITS_IMAGES_7" YOff="200" x="100"/>
+	<Text Title="QA Lead" Name="Chad Zoellner" YOff="-400" XCenterOff="150"/>
+	<Text Title="QA Testers" Name="Shawn Conard" XCenterOff="150"/>
+	<Text Title="" Name="Adam MacDonnell" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Ed Miller" YOff="-60" XCenterOff="150"/>	
+	<Text Title="" Name="Bob Church" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Michael Guillory" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Michael Racioppi" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Joe Melin" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Todd Downing" YOff="-60" XCenterOff="150"/>
+		
+	<Image resid="IMAGE_CREDITS_IMAGES_8" YOff="200" x="440" xflip="true"/>
+	<Text Title="Release Management" Name="Rocky Fry" YOff="-240" XCenterOff="-150"/>
+	<Text Title="" Name="Nick Tomlinson" YOff="-60" XCenterOff="-150"/>
+	<Text Title="" Name="Daniel Landeck" YOff="-60" XCenterOff="-150"/>
+	<Text Title="" Name="Irene Cheung" YOff="-60" XCenterOff="-150"/>
+	
+	<Image resid="IMAGE_CREDITS_IMAGES_9" YOff="500" x="100"/>
+	<Text Title="Special Thanks" Name="Misael Armendariz" YOff="-500" XCenterOff="150"/>
+	<Text Title="" Name="John Vechey" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Dave Haas" YOff="-60" XCenterOff="150"/>^
+	<Text Title="" Name="Shanon Lyon" YOff="-60" XCenterOff="150"/>	
+	<Text Title="" Name="Tysen Henderson" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Chris Cobb" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Steve Dubinsky" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Noah Maas" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Matt Holmberg" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="L. Ron Powers" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Ben Rotholtz" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Paula Wong" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Garth Chouteau" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Cathy Orr" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Glenn Mitsui" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Eric Pitcock" YOff="-60" XCenterOff="150"/>	
+	<Text Title="" Name="Don Walters" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Bart Barden" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Curtis Kuhn" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="Yvette Camacho" YOff="-60" XCenterOff="150"/>
+	<Text Title="" Name="The PopCap Beta Testers" YOff="-60" XCenterOff="150"/>
+		
+	<Text Title="" Name="Thanks for playing!" YOff="500"/>
+	<Image resid="IMAGE_CREDITS_IMAGES_10" YOff="-500" x="center"/>
+		
+</Credits>

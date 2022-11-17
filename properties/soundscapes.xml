@@ -1,0 +1,50 @@
+<Config>
+
+	<!-- 
+	The minimum (leftmost) pan value is -10,000. The maximum (rightmost) is 10,000. 
+
+	You can specify a default directory to load sounds from with the "dir" parameter.
+
+	The parameters "mintime" and "maxtime" control the min/max time range
+	for choosing a random sound to play. They are in seconds and can be fractional. 
+	
+	The "volume" parameter is between 0.0 and 1.0. This is the default volume all sounds play at.
+	-->
+	<Defaults panmin="-1000" panmax="1000" dir="sounds/soundscapes" mintime="1" maxtime="2" volume="1.0"/>
+
+	<!-- 
+	Define a new soundscape with the "Soundscape" tag. Give it a unique ID. You will use this in the level XML
+	to indicate which soundscape to use. 
+	You can override ANY parameter specified in the Defaults section on a per-soundscape basis.
+	-->
+	<Soundscape id="Test1" mintime="3.5" maxtime="8.5">
+
+		<!-- By default, the sound will play at a random pan value between panmin and panmax.
+			You can force it to play at a specific pan value by using the parameter pan="<some value>".
+			This will, just for this sample, override any default settings.
+			
+			The "file" parameter is the name of the file to load. DO NOT PRECEED IT WITH A SLASH.
+			This file will be presumed to be in the directory indicated by the default directory
+			(or Soundscape directory if you overrode it there).
+			
+			The "volume" parameter is between 0 and 1.0 (1 is default) and indicates how loud the sound is.
+			This will, just for this sample, override any default settings.
+			
+			"randomweight" indicates what weight to give the sound. A higher weight relative to other sounds
+			in the soundscape means that it has a higher chance of playing. The minimum value is 0. 
+			If you are looping a sound, this value doesn't have any effect as looping sounds are always played.
+			
+			"loop" indicates that the sample should seamlessly loop.
+			
+			"pitchmin" and "pitchmax" indicate the min and max range to randomly pitch shift the sound.
+			A value of 0 is the default pitch. The values must be integers.
+		-->
+			
+		<Sound file="os_bird1" volume="0.80" randomweight="10" pan="-1000"/>
+		<Sound file="os_lark" randomweight="10" pitchmin="0" pitchmax="5"/>
+		<Sound file="amb_loop_jungle" loop="true"/>
+		
+		
+	</Soundscape>
+	
+</Config>

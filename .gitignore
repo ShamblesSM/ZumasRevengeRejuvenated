@@ -1,0 +1,10 @@
+drm/*
+dev/*
+**.psd
+fonts/1200 - Copy/*
+properties/partner.xml
+properties/partner.xml.sig
+properties/partner.xml.sig2
+properties/resources - Copy.xml
+properties/default.xml
+** - Copy
